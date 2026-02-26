@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Blog_Manager (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Blog_Manager (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

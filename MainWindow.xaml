@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Blog_Manager.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Blog_Manager"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <ResourceDictionary>
+            <!-- 覆盖 NavigationView 的面板背景色 -->
+            <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="Transparent"/>
+            <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="Transparent"/>
+            <SolidColorBrush x:Key="NavigationViewExpandedPaneBackground" Color="Transparent"/>
+            <!-- 移除 NavigationView Header 默认边距，由自定义 Border 控制 -->
+            <Thickness x:Key="NavigationViewHeaderMargin">0,0,0,0</Thickness>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <Grid x:Name="RootGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TitleBar x:Name="AppTitleBar"
+                  Grid.Row="0"
+                  Title="博客管理系统"
+                  MinHeight="48"
+                  IsPaneToggleButtonVisible="True"
+                  PaneToggleRequested="TitleBar_PaneToggleRequested">
+            <TitleBar.IconSource>
+                <ImageIconSource ImageSource="/Assets/Square44x44Logo.targetsize-24_altform-unplated.png"/>
+            </TitleBar.IconSource>
+        </TitleBar>
+
+        <NavigationView x:Name="NavView"
+                       Grid.Row="1"
+                       OpenPaneLength="250"
+                       IsBackButtonVisible="Collapsed"
+                       IsPaneToggleButtonVisible="False"
+                       IsSettingsVisible="False"
+                       PaneDisplayMode="Left"
+                       AlwaysShowHeader="True"
+                       ItemInvoked="NavView_ItemInvoked"
+                       Loaded="NavView_Loaded">
+
+            <NavigationView.Header>
+                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="32,24,32,24">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 页面标题（使用官方 BreadcrumbBar） -->
+                        <BreadcrumbBar x:Name="PageBreadcrumb"
+                                       Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       ItemClicked="PageBreadcrumb_ItemClicked">
+                            <BreadcrumbBar.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <TextBlock Text="{x:Bind}"
+                                               Style="{StaticResource SubtitleTextBlockStyle}"
+                                               FontWeight="SemiBold"/>
+                                </DataTemplate>
+                            </BreadcrumbBar.ItemTemplate>
+                        </BreadcrumbBar>
+
+                        <!-- 功能区容器 -->
+                        <StackPanel Grid.Column="1"
+                                    x:Name="ToolbarContainer"
+                                    Orientation="Horizontal"
+                                    Spacing="12"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </NavigationView.Header>
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="仪表板" Tag="Dashboard">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE80F;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="文章管理" Tag="Articles">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8A5;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="分类管理" Tag="Categories">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8FD;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="评论管理" Tag="Comments">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8BD;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="留言管理" Tag="Messages">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8F2;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="小工具管理" Tag="Widgets">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE74C;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="主题管理" Tag="Themes">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE771;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="网站配置" Tag="Config">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="公告管理" Tag="Announcements">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE789;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="更新日志" Tag="UpdateLogs">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE923;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Content="个人信息" Tag="Profile">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE77B;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="设置" Tag="Settings">
+                    <NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Setting"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <!-- 内容区域 -->
+            <Grid x:Name="ContentContainer"
+                  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                <Frame x:Name="ContentFrame"/>
+            </Grid>
+        </NavigationView>
+    </Grid>
+</Page>
+

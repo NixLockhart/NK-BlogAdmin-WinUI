@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Blog_Manager.Views.ArticleEditorPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:Blog_Manager.Models"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <!-- Loading/Error States -->
+        <StackPanel x:Name="LoadingPanel"
+                   Visibility="Collapsed"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Spacing="12">
+            <ProgressRing IsActive="True" Width="50" Height="50"/>
+            <TextBlock Text="加载中..." TextAlignment="Center"/>
+        </StackPanel>
+
+        <InfoBar x:Name="ErrorInfoBar"
+                Visibility="Collapsed"
+                Severity="Error"
+                IsClosable="True"
+                Title="操作失败"
+                Margin="24"/>
+
+        <!-- Main Content -->
+        <Grid x:Name="ContentPanel">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Padding="24,24,24,8">
+                <!-- Title -->
+                <TextBox x:Name="TitleTextBox"
+                        PlaceholderText="请输入文章标题"
+                        Text="{x:Bind ViewModel.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        MaxLength="200"
+                        FontSize="24"
+                        BorderThickness="0,0,0,1"
+                        Background="Transparent"
+                        Padding="8"/>
+            </StackPanel>
+
+            <!-- Markdown Toolbar -->
+            <Grid Grid.Row="1" Padding="24,8,24,8" Background="{ThemeResource LayerFillColorAltBrush}">
+                <StackPanel x:Name="MarkdownToolbar" Orientation="Horizontal" Spacing="4">
+                    <TextBlock Text="快捷工具："
+                             VerticalAlignment="Center"
+                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                             Margin="0,0,12,0"/>
+                    <Button x:Name="InsertH1Button" Content="H1" Click="InsertH1_Click" ToolTipService.ToolTip="一级标题" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertH2Button" Content="H2" Click="InsertH2_Click" ToolTipService.ToolTip="二级标题" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertH3Button" Content="H3" Click="InsertH3_Click" ToolTipService.ToolTip="三级标题" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertBoldButton" Content="B" FontWeight="Bold" Click="InsertBold_Click" ToolTipService.ToolTip="粗体" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertItalicButton" Content="I" FontStyle="Italic" Click="InsertItalic_Click" ToolTipService.ToolTip="斜体" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertLinkButton" Content="Link" Click="InsertLink_Click" ToolTipService.ToolTip="链接" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="UploadImageButton" Content="Image" Click="UploadImage_Click" ToolTipService.ToolTip="上传图片" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertCodeButton" Content="Code" Click="InsertCode_Click" ToolTipService.ToolTip="代码块" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertQuoteButton" Content="Quote" Click="InsertQuote_Click" ToolTipService.ToolTip="引用" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertListButton" Content="List" Click="InsertList_Click" ToolTipService.ToolTip="列表" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertMathButton" Content="Math" Click="InsertMath_Click" ToolTipService.ToolTip="LaTeX公式" Style="{StaticResource SubtleButtonStyle}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Editor Section -->
+            <Grid Grid.Row="2" Padding="24,8,24,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Markdown Editor -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                              Text="Markdown 编辑器"
+                              Style="{StaticResource SubtitleTextBlockStyle}"
+                              Margin="0,0,0,8"/>
+
+                    <Border Grid.Row="1"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <ScrollViewer x:Name="EditorScrollViewer"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Disabled"
+                                     ViewChanged="EditorScrollViewer_ViewChanged">
+                            <TextBox x:Name="MarkdownEditor"
+                                    Text="{x:Bind ViewModel.Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextWrapping="Wrap"
+                                    AcceptsReturn="True"
+                                    BorderThickness="0"
+                                    Background="Transparent"
+                                    FontFamily="Consolas"
+                                    FontSize="14"
+                                    Padding="16"
+                                    ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+
+                <!-- Preview -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                              Text="实时预览"
+                              Style="{StaticResource SubtitleTextBlockStyle}"
+                              Margin="0,0,0,8"/>
+
+                    <Border Grid.Row="1"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
+                           CornerRadius="8"
+                           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <WebView2 x:Name="PreviewWebView"
+                                 DefaultBackgroundColor="Transparent"/>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

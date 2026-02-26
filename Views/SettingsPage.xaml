@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Blog_Manager.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Blog_Manager.Views"
+    xmlns:services="using:Blog_Manager.Services"
+    xmlns:converters="using:Blog_Manager.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:ObjectToVisibilityConverter x:Key="ObjectToVisibilityConverter"/>
+        <converters:DateTimeToStringConverter x:Key="DateTimeToStringConverter"/>
+        <converters:BoolToTestResultConverter x:Key="BoolToTestResultConverter"/>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+    </Page.Resources>
+
+    <Grid>
+        <!-- Main Content -->
+        <ScrollViewer Padding="24">
+            <ScrollViewer.Transitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition FromVerticalOffset="50"/>
+                </TransitionCollection>
+            </ScrollViewer.Transitions>
+
+            <StackPanel Spacing="24">
+
+                <!-- Appearance Settings -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Section Header -->
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE790;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="外观"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock Text="自定义应用的主题风格"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontSize="12"
+                                       Margin="28,0,0,0"/>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                        <!-- Theme Selection -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="应用主题" FontWeight="Medium"/>
+                                <TextBlock Text="选择浅色、深色或跟随系统设置"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           FontSize="12"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                                <RadioButton x:Name="LightThemeRadio" Content="浅色" Tag="Light" GroupName="ThemeGroup" Checked="ThemeRadio_Checked"/>
+                                <RadioButton x:Name="DarkThemeRadio" Content="深色" Tag="Dark" GroupName="ThemeGroup" Checked="ThemeRadio_Checked"/>
+                                <RadioButton x:Name="DefaultThemeRadio" Content="跟随系统" Tag="Default" GroupName="ThemeGroup" IsChecked="True" Checked="ThemeRadio_Checked"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Backend Server Management -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Section Header -->
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE968;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="后端服务器"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock Text="管理和切换后端服务器连接"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontSize="12"
+                                       Margin="28,0,0,0"/>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                        <!-- Current Backend Info -->
+                        <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                CornerRadius="6"
+                                Padding="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0"
+                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                        CornerRadius="20"
+                                        Width="40"
+                                        Height="40"
+                                        Margin="0,0,16,0">
+                                    <FontIcon Glyph="&#xE774;" FontSize="18" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                    <TextBlock Text="当前连接" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                    <TextBlock Text="{x:Bind CurrentBackendUrl, Mode=OneWay}"
+                                               FontWeight="Medium"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Backend List -->
+                        <ListView x:Name="BackendListView"
+                                  ItemsSource="{x:Bind BackendServers, Mode=OneWay}"
+                                  SelectionMode="None"
+                                  MaxHeight="320">
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0,4,0,4"/>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="services:BackendServer">
+                                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="16">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" Spacing="4">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{x:Bind Name}"
+                                                               FontWeight="SemiBold"
+                                                               FontSize="14"/>
+                                                    <Border Background="{ThemeResource SubtleFillColorTertiaryBrush}"
+                                                            CornerRadius="4"
+                                                            Padding="6,2"
+                                                            Visibility="{x:Bind IsCustom, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                        <TextBlock Text="自定义" FontSize="10"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{x:Bind Url}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           FontSize="12"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Visibility="{x:Bind LastTestResult, Mode=OneWay, Converter={StaticResource ObjectToVisibilityConverter}}"
+                                                           FontSize="11"
+                                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}">
+                                                    <Run Text="测试于"/>
+                                                    <Run Text="{x:Bind LastTestedAt, Mode=OneWay, Converter={StaticResource DateTimeToStringConverter}}"/>
+                                                    <Run Text=" - "/>
+                                                    <Run Text="{x:Bind LastTestResult, Mode=OneWay, Converter={StaticResource BoolToTestResultConverter}}"
+                                                         Foreground="{x:Bind LastTestResult, Mode=OneWay, Converter={StaticResource BoolToColorConverter}}"/>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1"
+                                                        Orientation="Horizontal"
+                                                        Spacing="8"
+                                                        VerticalAlignment="Center">
+                                                <Button Click="TestBackendInList_Click"
+                                                        Tag="{x:Bind Url}"
+                                                        ToolTipService.ToolTip="测试连接">
+                                                    <FontIcon Glyph="&#xE703;" FontSize="14"/>
+                                                </Button>
+                                                <Button Click="DeleteBackend_Click"
+                                                        Tag="{x:Bind Url}"
+                                                        Visibility="{x:Bind IsCustom, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                        ToolTipService.ToolTip="删除">
+                                                    <FontIcon Glyph="&#xE74D;" FontSize="14"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <!-- Add Backend Button -->
+                        <Button Click="AddCustomBackendInSettings_Click"
+                                HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                                <TextBlock Text="添加自定义后端"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- IP Location API Settings -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Section Header -->
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE81D;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="IP 属地查询"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock Text="配置 cn.apihz.cn 的 API 凭据，用于评论和留言的 IP 属地显示"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontSize="12"
+                                       Margin="28,0,0,0"/>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                        <!-- User ID -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="用户 ID" FontWeight="Medium" VerticalAlignment="Center" Width="80"/>
+                            <TextBox x:Name="IpApiUserIdBox"
+                                     Grid.Column="1"
+                                     PlaceholderText="请输入 cn.apihz.cn 的用户 ID"/>
+                        </Grid>
+
+                        <!-- User Key -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="用户密钥" FontWeight="Medium" VerticalAlignment="Center" Width="80"/>
+                            <PasswordBox x:Name="IpApiUserKeyBox"
+                                         Grid.Column="1"
+                                         PlaceholderText="请输入 API 密钥"/>
+                        </Grid>
+
+                        <!-- Save Button -->
+                        <Button Click="SaveIpApiCredentials_Click"
+                                HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                                <TextBlock Text="保存凭据"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Account Actions -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Section Header -->
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE8AB;" FontSize="18" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                <TextBlock Text="账户操作"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock Text="退出登录或切换账户"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontSize="12"
+                                       Margin="28,0,0,0"/>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                        <!-- Current User Info -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="当前登录账户" FontWeight="Medium"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{x:Bind CurrentUsername, Mode=OneWay}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               FontSize="13"/>
+                                    <TextBlock Text="·"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                               FontSize="13"/>
+                                    <TextBlock Text="{x:Bind CurrentNickname, Mode=OneWay}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               FontSize="13"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    x:Name="LogoutButton"
+                                    Click="LogoutButton_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xF3B1;" FontSize="14"/>
+                                    <TextBlock Text="退出登录"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- About Section -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Section Header -->
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE946;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="关于"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                        <Grid ColumnSpacing="24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- App Icon -->
+                            <Border Grid.Column="0"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                    CornerRadius="12"
+                                    Width="64"
+                                    Height="64">
+                                <FontIcon Glyph="&#xE70F;" FontSize="28" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <!-- App Info -->
+                            <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="星光小栈博客管理系统"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                            CornerRadius="4"
+                                            Padding="8,4">
+                                        <TextBlock Text="版本 2.0.0" FontSize="12"/>
+                                    </Border>
+                                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                            CornerRadius="4"
+                                            Padding="8,4">
+                                        <TextBlock Text="WinUI 3" FontSize="12"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="基于 WinUI 3 开发的现代化博客管理工具"
+                                           TextWrapping="Wrap"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           FontSize="12"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Status InfoBar -->
+        <InfoBar x:Name="StatusInfoBar"
+                 VerticalAlignment="Bottom"
+                 HorizontalAlignment="Center"
+                 Margin="0,0,0,24"
+                 Visibility="Collapsed"
+                 IsClosable="True"/>
+    </Grid>
+</Page>

@@ -3,12 +3,15 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Blog_Manager.ViewModels;
 using System;
+using System.Threading;
 
 namespace Blog_Manager.Views
 {
     public sealed partial class ArticlesPage : Page
     {
         public ArticlesViewModel ViewModel { get; }
+        private bool _isInitialized = false;
+        private CancellationTokenSource? _searchDebounce;
 
         public ArticlesPage()
         {
@@ -23,7 +26,9 @@ namespace Blog_Manager.Views
             try
             {
                 await System.Threading.Tasks.Task.Yield();
+                await InitializeFiltersAsync();
                 await LoadArticlesAsync();
+                _isInitialized = true;
             }
             catch (Exception ex)
             {
@@ -31,6 +36,31 @@ namespace Blog_Manager.Views
                 ErrorInfoBar.Visibility = Visibility.Visible;
                 LoadingPanel.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private async System.Threading.Tasks.Task InitializeFiltersAsync()
+        {
+            // 加载分类列表
+            await ViewModel.LoadCategoriesAsync();
+
+            // 填充分类筛选 ComboBox
+            CategoryFilterComboBox.Items.Clear();
+            var allItem = new ComboBoxItem { Content = "全部分类", Tag = (long?)null };
+            CategoryFilterComboBox.Items.Add(allItem);
+
+            foreach (var category in ViewModel.Categories)
+            {
+                var item = new ComboBoxItem
+                {
+                    Content = category.Name,
+                    Tag = (long?)category.Id
+                };
+                CategoryFilterComboBox.Items.Add(item);
+            }
+
+            // 设置初始选中项
+            StatusFilterComboBox.SelectedIndex = 0;
+            CategoryFilterComboBox.SelectedIndex = 0;
         }
 
         private async System.Threading.Tasks.Task LoadArticlesAsync()
@@ -69,8 +99,46 @@ namespace Blog_Manager.Views
 
         public async void OnSearchTextChanged(string searchText)
         {
-            ViewModel.SearchKeyword = searchText;
-            await LoadArticlesAsync();
+            // 取消之前的防抖
+            _searchDebounce?.Cancel();
+            _searchDebounce = new CancellationTokenSource();
+            var token = _searchDebounce.Token;
+
+            try
+            {
+                await System.Threading.Tasks.Task.Delay(300, token);
+                if (token.IsCancellationRequested) return;
+
+                ViewModel.SearchKeyword = searchText;
+                await LoadArticlesAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                // 防抖取消，忽略
+            }
+        }
+
+        private async void StatusFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            if (StatusFilterComboBox.SelectedItem is ComboBoxItem item)
+            {
+                var tagStr = item.Tag as string;
+                ViewModel.FilterStatus = string.IsNullOrEmpty(tagStr) ? null : tagStr;
+                await LoadArticlesAsync();
+            }
+        }
+
+        private async void CategoryFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!_isInitialized) return;
+
+            if (CategoryFilterComboBox.SelectedItem is ComboBoxItem item)
+            {
+                ViewModel.FilterCategoryId = item.Tag as long?;
+                await LoadArticlesAsync();
+            }
         }
 
         private void EditArticleButton_Click(object sender, RoutedEventArgs e)

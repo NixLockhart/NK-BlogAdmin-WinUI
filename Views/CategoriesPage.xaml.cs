@@ -114,6 +114,7 @@ namespace Blog_Manager.Views
             var stackPanel = new StackPanel
             {
                 Spacing = 8,
+                Width = 480,
                 Children = { nameBox, slugBox, descriptionBox, sortOrderBox }
             };
 
@@ -199,6 +200,7 @@ namespace Blog_Manager.Views
 
                 var stackPanel = new StackPanel
                 {
+                    Width = 480,
                     Children = { new TextBlock { Text = content, TextWrapping = TextWrapping.Wrap } }
                 };
 

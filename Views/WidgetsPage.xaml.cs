@@ -192,7 +192,7 @@ namespace Blog_Manager.Views
                 XamlRoot = this.XamlRoot
             };
 
-            var panel = new StackPanel { Spacing = 12 };
+            var panel = new StackPanel { Spacing = 12, Width = 480 };
 
             var nameBox = new TextBox
             {
@@ -279,7 +279,7 @@ namespace Blog_Manager.Views
                     XamlRoot = this.XamlRoot
                 };
 
-                var panel = new StackPanel { Spacing = 12 };
+                var panel = new StackPanel { Spacing = 12, Width = 480 };
 
                 var nameBox = new TextBox
                 {

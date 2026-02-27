@@ -1,8 +1,8 @@
+using Blog_Manager.Helpers;
 using Blog_Manager.Models;
 using Blog_Manager.Services.Api;
 using System;
 using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace Blog_Manager.Services
 {
@@ -15,7 +15,6 @@ namespace Blog_Manager.Services
         private const string USERNAME_KEY = "auth_username";
         private const string NICKNAME_KEY = "auth_nickname";
 
-        private readonly ApplicationDataContainer _localSettings;
         private readonly ApiServiceFactory _apiServiceFactory;
 
         public string? CurrentToken { get; private set; }
@@ -28,7 +27,6 @@ namespace Blog_Manager.Services
         public AuthService(ApiServiceFactory apiServiceFactory)
         {
             _apiServiceFactory = apiServiceFactory;
-            _localSettings = ApplicationData.Current.LocalSettings;
             LoadStoredCredentials();
         }
 
@@ -55,9 +53,9 @@ namespace Blog_Manager.Services
                     CurrentNickname = result.Data.Nickname;
 
                     // 保存到本地存储
-                    _localSettings.Values[TOKEN_KEY] = CurrentToken;
-                    _localSettings.Values[USERNAME_KEY] = CurrentUsername;
-                    _localSettings.Values[NICKNAME_KEY] = CurrentNickname;
+                    SettingsHelper.SetValue(TOKEN_KEY, CurrentToken);
+                    SettingsHelper.SetValue(USERNAME_KEY, CurrentUsername);
+                    SettingsHelper.SetValue(NICKNAME_KEY, CurrentNickname);
 
                     AuthenticationStateChanged?.Invoke(this, true);
                     return (true, "登录成功");
@@ -120,20 +118,9 @@ namespace Blog_Manager.Services
         /// </summary>
         private void LoadStoredCredentials()
         {
-            if (_localSettings.Values.TryGetValue(TOKEN_KEY, out var token))
-            {
-                CurrentToken = token as string;
-            }
-
-            if (_localSettings.Values.TryGetValue(USERNAME_KEY, out var username))
-            {
-                CurrentUsername = username as string;
-            }
-
-            if (_localSettings.Values.TryGetValue(NICKNAME_KEY, out var nickname))
-            {
-                CurrentNickname = nickname as string;
-            }
+            CurrentToken = SettingsHelper.GetString(TOKEN_KEY);
+            CurrentUsername = SettingsHelper.GetString(USERNAME_KEY);
+            CurrentNickname = SettingsHelper.GetString(NICKNAME_KEY);
         }
 
         /// <summary>
@@ -145,9 +132,9 @@ namespace Blog_Manager.Services
             CurrentUsername = null;
             CurrentNickname = null;
 
-            _localSettings.Values.Remove(TOKEN_KEY);
-            _localSettings.Values.Remove(USERNAME_KEY);
-            _localSettings.Values.Remove(NICKNAME_KEY);
+            SettingsHelper.RemoveValue(TOKEN_KEY);
+            SettingsHelper.RemoveValue(USERNAME_KEY);
+            SettingsHelper.RemoveValue(NICKNAME_KEY);
         }
     }
 }

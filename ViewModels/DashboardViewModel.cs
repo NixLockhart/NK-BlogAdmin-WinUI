@@ -83,7 +83,7 @@ namespace Blog_Manager.ViewModels
                     Runtime = CalculateRuntime(stats.RunningDays);
 
                     // System version
-                    SystemVersion = string.IsNullOrEmpty(stats.Version) ? "v1.0.0" : $"v{stats.Version}";
+                    SystemVersion = string.IsNullOrEmpty(stats.Version) ? "v1.0.0" : stats.Version;
                 }
                 else
                 {

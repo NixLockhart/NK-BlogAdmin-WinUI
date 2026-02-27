@@ -54,7 +54,7 @@ namespace Blog_Manager.Views
         private async Task ShowAddThemeDialogAsync()
         {
             // 创建输入表单
-            StackPanel stackPanel = new StackPanel { Spacing = 12 };
+            StackPanel stackPanel = new StackPanel { Spacing = 12, Width = 480 };
 
             TextBox nameTextBox = new TextBox
             {
@@ -490,7 +490,7 @@ namespace Blog_Manager.Views
         private async Task ShowEditThemeDialogAsync(Models.Theme theme)
         {
             // 创建输入表单
-            StackPanel stackPanel = new StackPanel { Spacing = 12 };
+            StackPanel stackPanel = new StackPanel { Spacing = 12, Width = 480 };
 
             TextBox nameTextBox = new TextBox
             {

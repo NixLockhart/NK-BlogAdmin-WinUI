@@ -189,7 +189,8 @@ namespace Blog_Manager.Views
 
             var panel = new StackPanel
             {
-                Spacing = 12
+                Spacing = 12,
+                Width = 480
             };
 
             _nameTextBox = new TextBox

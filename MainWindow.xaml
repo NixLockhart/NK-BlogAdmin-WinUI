@@ -165,6 +165,47 @@
                 <Frame x:Name="ContentFrame"/>
             </Grid>
         </NavigationView>
+
+        <!-- 强制更新遮罩 -->
+        <Grid x:Name="ForceUpdateOverlay"
+              Grid.Row="1"
+              Visibility="Collapsed"
+              Background="{ThemeResource LayerFillColorDefaultBrush}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="24" MaxWidth="500" Padding="48">
+                <FontIcon Glyph="&#xE895;" FontSize="48"
+                          HorizontalAlignment="Center"
+                          Foreground="{ThemeResource SystemFillColorCautionBrush}"/>
+                <TextBlock Text="需要更新" FontSize="28" FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock x:Name="ForceUpdateMessage"
+                           TextAlignment="Center" TextWrapping="Wrap"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <ScrollViewer MaxHeight="250"
+                              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                              BorderThickness="1" CornerRadius="8" Padding="16"
+                              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                    <TextBlock x:Name="ForceUpdateChangelog" TextWrapping="Wrap" FontSize="13"
+                               IsTextSelectionEnabled="True"/>
+                </ScrollViewer>
+                <ProgressBar x:Name="ForceUpdateProgress" Visibility="Collapsed"
+                             Minimum="0" Maximum="100"/>
+                <TextBlock x:Name="ForceUpdateProgressText" Visibility="Collapsed"
+                           HorizontalAlignment="Center" FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                    <Button x:Name="ForceUpdateBtn" Content="立即更新"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Click="ForceUpdateBtn_Click"/>
+                    <HyperlinkButton x:Name="ForceUpdateBrowserBtn"
+                                     Content="在浏览器中打开"
+                                     Visibility="Collapsed"
+                                     Click="ForceUpdateBrowserBtn_Click"/>
+                    <Button Content="退出应用" Click="ExitAppBtn_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>
 

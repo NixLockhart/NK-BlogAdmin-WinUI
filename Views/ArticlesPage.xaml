@@ -23,8 +23,55 @@
                 </TransitionCollection>
             </Grid.Transitions>
 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+        <!-- Filter Toolbar -->
+        <Border Grid.Row="0"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="16"
+                Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Filter by Status -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="0,0,16,0">
+                    <TextBlock Text="按状态筛选:" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="StatusFilterComboBox"
+                             PlaceholderText="全部状态"
+                             MinWidth="120"
+                             SelectionChanged="StatusFilterComboBox_SelectionChanged">
+                        <ComboBoxItem Content="全部" Tag=""/>
+                        <ComboBoxItem Content="已发布" Tag="1"/>
+                        <ComboBoxItem Content="草稿" Tag="2"/>
+                        <ComboBoxItem Content="已删除" Tag="0"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Filter by Category -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="按分类筛选:" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CategoryFilterComboBox"
+                             PlaceholderText="全部分类"
+                             MinWidth="150"
+                             SelectionChanged="CategoryFilterComboBox_SelectionChanged"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
         <!-- Loading/Error States -->
         <StackPanel x:Name="LoadingPanel"
+                    Grid.Row="1"
                     Visibility="Collapsed"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
@@ -34,6 +81,7 @@
         </StackPanel>
 
         <InfoBar x:Name="ErrorInfoBar"
+                 Grid.Row="1"
                  Visibility="Collapsed"
                  Severity="Error"
                  IsClosable="True"
@@ -41,6 +89,7 @@
 
         <!-- Articles DataGrid -->
         <ScrollViewer x:Name="ContentPanel"
+                     Grid.Row="2"
                      VerticalScrollBarVisibility="Auto">
             <ListView x:Name="ArticlesListView"
                      ItemsSource="{x:Bind ViewModel.Articles, Mode=OneWay}"

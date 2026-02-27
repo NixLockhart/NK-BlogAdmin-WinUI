@@ -133,24 +133,6 @@ namespace Blog_Manager.Views
         {
             if (ViewModel.Profile != null)
             {
-                // 账户状态
-                if (ViewModel.Profile.Status == 1)
-                {
-                    StatusText.Text = "账户正常";
-                    StatusIcon.Glyph = "\uE73E"; // Checkmark
-                    AccountStatusBadge.Background = new SolidColorBrush(Microsoft.UI.Colors.Green);
-                    StatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
-                    StatusIcon.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
-                }
-                else
-                {
-                    StatusText.Text = "已禁用";
-                    StatusIcon.Glyph = "\uE711"; // Cancel
-                    AccountStatusBadge.Background = new SolidColorBrush(Microsoft.UI.Colors.Red);
-                    StatusText.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
-                    StatusIcon.Foreground = new SolidColorBrush(Microsoft.UI.Colors.White);
-                }
-
                 // 最后登录时间
                 if (ViewModel.Profile.LastLoginAt.HasValue)
                 {

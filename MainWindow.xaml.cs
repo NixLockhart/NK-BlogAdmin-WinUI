@@ -2,11 +2,16 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Media.Animation;
+using Blog_Manager.Models;
 using Blog_Manager.Services;
 using Blog_Manager.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Blog_Manager
 {
@@ -16,6 +21,7 @@ namespace Blog_Manager
     public sealed partial class MainWindow : Page
     {
         private readonly AuthService _authService;
+        private UpdateCheckResult? _forceUpdateResult;
 
         /// <summary>
         /// 暴露 TitleBar 元素供 App.xaml.cs 调用 SetTitleBar
@@ -261,6 +267,9 @@ namespace Blog_Manager
                     break;
                 }
             }
+
+            // 启动后台版本检查
+            _ = CheckForUpdatesAsync();
         }
 
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
@@ -565,5 +574,119 @@ namespace Blog_Manager
         {
             NavView.IsPaneOpen = !NavView.IsPaneOpen;
         }
+
+        #region 版本更新检查
+
+        private async Task CheckForUpdatesAsync()
+        {
+            try
+            {
+                var app = Application.Current as App;
+                if (app?.UpdateService == null) return;
+
+                var result = await app.UpdateService.CheckForUpdateAsync();
+                if (result == null || !result.HasUpdate) return;
+
+                if (result.IsMajorUpdate)
+                {
+                    ShowForceUpdateOverlay(result);
+                }
+                else
+                {
+                    var skipped = app.UpdateService.GetSkippedVersion();
+                    if (skipped == result.LatestVersion) return;
+
+                    var dialog = new UpdateDialog(result) { XamlRoot = this.XamlRoot };
+                    await dialog.ShowAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Update check failed: {ex.Message}");
+            }
+        }
+
+        private void ShowForceUpdateOverlay(UpdateCheckResult result)
+        {
+            _forceUpdateResult = result;
+
+            var app = Application.Current as App;
+            var currentVersion = app?.UpdateService?.CurrentVersion ?? "unknown";
+
+            ForceUpdateMessage.Text = $"检测到重大版本更新，当前版本 {currentVersion}，最新版本 {result.LatestVersion}。\n请更新后继续使用。";
+
+            // 构建更新日志
+            var sb = new StringBuilder();
+            foreach (var release in result.NewReleases)
+            {
+                if (sb.Length > 0) sb.AppendLine();
+                sb.AppendLine($"── {release.TagName} {release.Name} ──");
+                if (!string.IsNullOrWhiteSpace(release.Body))
+                    sb.AppendLine(release.Body.Trim());
+            }
+            ForceUpdateChangelog.Text = sb.Length > 0 ? sb.ToString() : "暂无更新说明";
+
+            // 没有下载链接时禁用更新按钮，显示浏览器链接
+            if (string.IsNullOrEmpty(result.DownloadUrl))
+            {
+                ForceUpdateBtn.IsEnabled = false;
+                if (!string.IsNullOrEmpty(result.ReleasePageUrl))
+                    ForceUpdateBrowserBtn.Visibility = Visibility.Visible;
+            }
+
+            ForceUpdateOverlay.Visibility = Visibility.Visible;
+        }
+
+        private async void ForceUpdateBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_forceUpdateResult?.DownloadUrl == null) return;
+
+            var app = Application.Current as App;
+            if (app?.UpdateService == null) return;
+
+            ForceUpdateBtn.IsEnabled = false;
+            ForceUpdateProgress.Visibility = Visibility.Visible;
+            ForceUpdateProgressText.Visibility = Visibility.Visible;
+
+            var cts = new CancellationTokenSource();
+            var progress = new Progress<double>(percent =>
+            {
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    ForceUpdateProgress.Value = percent;
+                    ForceUpdateProgressText.Text = $"{percent:F0}%";
+                });
+            });
+
+            try
+            {
+                var msixPath = await app.UpdateService.DownloadUpdateAsync(
+                    _forceUpdateResult.DownloadUrl, progress, cts.Token);
+                await app.UpdateService.LaunchInstallerAsync(msixPath);
+            }
+            catch (Exception ex)
+            {
+                ForceUpdateProgressText.Text = $"下载失败: {ex.Message}";
+                ForceUpdateBtn.IsEnabled = true;
+
+                if (!string.IsNullOrEmpty(_forceUpdateResult.ReleasePageUrl))
+                    ForceUpdateBrowserBtn.Visibility = Visibility.Visible;
+            }
+        }
+
+        private async void ForceUpdateBrowserBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_forceUpdateResult?.ReleasePageUrl))
+            {
+                await Windows.System.Launcher.LaunchUriAsync(new Uri(_forceUpdateResult.ReleasePageUrl));
+            }
+        }
+
+        private void ExitAppBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Exit();
+        }
+
+        #endregion
     }
 }

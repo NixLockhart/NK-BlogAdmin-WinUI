@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Windows.Storage;
+using Blog_Manager.Helpers;
 using Newtonsoft.Json;
 
 namespace Blog_Manager.Services
@@ -33,7 +33,6 @@ namespace Blog_Manager.Services
         private const string BACKEND_LIST_KEY = "backend_servers";
         private const string CURRENT_BACKEND_KEY = "current_backend_url";
 
-        private readonly ApplicationDataContainer _localSettings;
         private readonly ObservableCollection<BackendServer> _backends;
 
         public ObservableCollection<BackendServer> Backends => _backends;
@@ -43,7 +42,6 @@ namespace Blog_Manager.Services
 
         public BackendConfigService()
         {
-            _localSettings = ApplicationData.Current.LocalSettings;
             _backends = new ObservableCollection<BackendServer>();
             LoadBackends();
         }
@@ -65,11 +63,12 @@ namespace Blog_Manager.Services
             });
 
             // 从本地存储加载自定义后端
-            if (_localSettings.Values.TryGetValue(BACKEND_LIST_KEY, out var backendsJson))
+            var backendsJson = SettingsHelper.GetString(BACKEND_LIST_KEY);
+            if (!string.IsNullOrEmpty(backendsJson))
             {
                 try
                 {
-                    var customBackends = JsonConvert.DeserializeObject<List<BackendServer>>(backendsJson as string ?? "[]");
+                    var customBackends = JsonConvert.DeserializeObject<List<BackendServer>>(backendsJson ?? "[]");
                     if (customBackends != null)
                     {
                         foreach (var backend in customBackends)
@@ -86,10 +85,7 @@ namespace Blog_Manager.Services
             }
 
             // 加载当前选中的后端
-            if (_localSettings.Values.TryGetValue(CURRENT_BACKEND_KEY, out var currentUrl))
-            {
-                CurrentBackendUrl = currentUrl as string;
-            }
+            CurrentBackendUrl = SettingsHelper.GetString(CURRENT_BACKEND_KEY);
 
             // 如果没有选中的后端，使用第一个默认后端
             if (string.IsNullOrEmpty(CurrentBackendUrl) && _backends.Count > 0)
@@ -105,7 +101,7 @@ namespace Blog_Manager.Services
         {
             var customBackends = _backends.Where(b => b.IsCustom).ToList();
             var json = JsonConvert.SerializeObject(customBackends);
-            _localSettings.Values[BACKEND_LIST_KEY] = json;
+            SettingsHelper.SetValue(BACKEND_LIST_KEY, json);
         }
 
         /// <summary>
@@ -158,7 +154,7 @@ namespace Blog_Manager.Services
             if (_backends.Any(b => b.Url.Equals(url, StringComparison.OrdinalIgnoreCase)))
             {
                 CurrentBackendUrl = url;
-                _localSettings.Values[CURRENT_BACKEND_KEY] = url;
+                SettingsHelper.SetValue(CURRENT_BACKEND_KEY, url);
                 CurrentBackendChanged?.Invoke(this, url);
             }
             else

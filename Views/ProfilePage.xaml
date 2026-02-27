@@ -41,30 +41,21 @@
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="24">
-                    <!-- 使用 StackPanel 实现垂直堆叠，窄屏时自然换行 -->
-                    <StackPanel x:Name="ProfileHeaderPanel" Spacing="24">
-                        <!-- 头像和基本信息行 -->
-                        <StackPanel x:Name="AvatarInfoPanel" Orientation="Horizontal" Spacing="24">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 左侧：头像和基本信息 -->
+                        <StackPanel x:Name="AvatarInfoPanel" Grid.Column="0" Orientation="Horizontal" Spacing="24">
                             <!-- Avatar Section -->
                             <StackPanel Spacing="12" VerticalAlignment="Top">
-                                <Grid>
-                                    <PersonPicture x:Name="AvatarPicture"
-                                                  Width="80"
-                                                  Height="80"
-                                                  ProfilePicture="{x:Bind ViewModel.Avatar, Mode=OneWay, Converter={StaticResource StringToImageSourceConverter}}"
-                                                  DisplayName="{x:Bind ViewModel.Nickname, Mode=OneWay}"/>
-
-                                    <!-- Status Badge -->
-                                    <Border x:Name="StatusBadge"
-                                            Background="Green"
-                                            CornerRadius="6"
-                                            Padding="4,2"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Bottom"
-                                            Margin="0,0,-2,-2">
-                                        <TextBlock Text="在线" FontSize="9" Foreground="White" FontWeight="Medium"/>
-                                    </Border>
-                                </Grid>
+                                <PersonPicture x:Name="AvatarPicture"
+                                              Width="80"
+                                              Height="80"
+                                              ProfilePicture="{x:Bind ViewModel.Avatar, Mode=OneWay, Converter={StaticResource StringToImageSourceConverter}}"
+                                              DisplayName="{x:Bind ViewModel.Nickname, Mode=OneWay}"/>
 
                                 <Button Content="更换头像"
                                         HorizontalAlignment="Center"
@@ -85,56 +76,42 @@
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                            Visibility="{x:Bind ViewModel.Nickname, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"/>
 
-                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-                                    <!-- Email Badge -->
-                                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                            CornerRadius="4"
-                                            Padding="8,4"
-                                            Visibility="{x:Bind ViewModel.Email, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <FontIcon Glyph="&#xE715;" FontSize="12"/>
-                                            <TextBlock Text="{x:Bind ViewModel.Email, Mode=OneWay}" FontSize="12"/>
-                                        </StackPanel>
-                                    </Border>
-
-                                    <!-- Status Badge -->
-                                    <Border x:Name="AccountStatusBadge"
-                                            CornerRadius="4"
-                                            Padding="8,4">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <FontIcon x:Name="StatusIcon" Glyph="&#xE73E;" FontSize="12"/>
-                                            <TextBlock x:Name="StatusText" FontSize="12"/>
-                                        </StackPanel>
-                                    </Border>
-                                </StackPanel>
+                                <!-- Email Badge -->
+                                <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        CornerRadius="4"
+                                        Padding="8,4"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,4,0,0"
+                                        Visibility="{x:Bind ViewModel.Email, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE715;" FontSize="12"/>
+                                        <TextBlock Text="{x:Bind ViewModel.Email, Mode=OneWay}" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Stats Section - 独立一行 -->
-                        <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                CornerRadius="6"
-                                Padding="16,12">
-                            <StackPanel Orientation="Horizontal" Spacing="32">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="最后登录"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
-                                    <TextBlock x:Name="LastLoginText"
-                                               FontSize="12"
-                                               FontWeight="Medium"/>
-                                </StackPanel>
-
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="注册时间"
-                                               FontSize="11"
-                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
-                                    <TextBlock x:Name="CreatedAtText"
-                                               FontSize="12"
-                                               FontWeight="Medium"/>
-                                </StackPanel>
+                        <!-- 右侧：最后登录和注册时间 -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="16">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="最后登录"
+                                           FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                <TextBlock x:Name="LastLoginText"
+                                           FontSize="12"
+                                           FontWeight="Medium"/>
                             </StackPanel>
-                        </Border>
-                    </StackPanel>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="注册时间"
+                                           FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                <TextBlock x:Name="CreatedAtText"
+                                           FontSize="12"
+                                           FontWeight="Medium"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
                 <!-- Forms Container - 响应式布局 -->

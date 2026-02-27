@@ -12,7 +12,7 @@
     DefaultButton="Primary">
 
     <ScrollViewer MaxHeight="600">
-        <StackPanel Spacing="16" Padding="4">
+        <StackPanel Spacing="16" Padding="4" Width="480">
             <!-- Category Selection -->
             <ComboBox x:Name="CategoryComboBox"
                      Header="文章分类 *"

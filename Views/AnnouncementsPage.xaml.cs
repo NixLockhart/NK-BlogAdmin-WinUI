@@ -204,7 +204,7 @@ namespace Blog_Manager.Views
                 endTimePicker.Date = announcement.EndTime.Value;
             }
 
-            var stackPanel = new StackPanel { Spacing = 12 };
+            var stackPanel = new StackPanel { Spacing = 12, Width = 480 };
             stackPanel.Children.Add(titleBox);
             stackPanel.Children.Add(contentBox);
             stackPanel.Children.Add(startTimePicker);

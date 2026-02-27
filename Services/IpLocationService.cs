@@ -1,9 +1,9 @@
+using Blog_Manager.Helpers;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace Blog_Manager.Services
 {
@@ -19,7 +19,6 @@ namespace Blog_Manager.Services
         private const string IP_API_USERKEY_KEY = "ip_api_userkey";
 
         private readonly HttpClient _httpClient;
-        private readonly ApplicationDataContainer _localSettings;
 
         // 缓存已查询的IP属地，避免重复请求
         private readonly ConcurrentDictionary<string, string> _locationCache = new();
@@ -38,7 +37,6 @@ namespace Blog_Manager.Services
 
         public IpLocationService()
         {
-            _localSettings = ApplicationData.Current.LocalSettings;
             _httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(5)
@@ -50,8 +48,8 @@ namespace Blog_Manager.Services
         /// </summary>
         private (string? userId, string? userKey) GetCredentials()
         {
-            var userId = _localSettings.Values[IP_API_USERID_KEY] as string;
-            var userKey = _localSettings.Values[IP_API_USERKEY_KEY] as string;
+            var userId = SettingsHelper.GetString(IP_API_USERID_KEY);
+            var userKey = SettingsHelper.GetString(IP_API_USERKEY_KEY);
             return (userId, userKey);
         }
 
@@ -60,8 +58,8 @@ namespace Blog_Manager.Services
         /// </summary>
         public void SetCredentials(string userId, string userKey)
         {
-            _localSettings.Values[IP_API_USERID_KEY] = userId;
-            _localSettings.Values[IP_API_USERKEY_KEY] = userKey;
+            SettingsHelper.SetValue(IP_API_USERID_KEY, userId);
+            SettingsHelper.SetValue(IP_API_USERKEY_KEY, userKey);
         }
 
         /// <summary>

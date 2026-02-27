@@ -372,7 +372,7 @@
                                     <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                             CornerRadius="4"
                                             Padding="8,4">
-                                        <TextBlock Text="版本 2.0.0" FontSize="12"/>
+                                        <TextBlock x:Name="VersionText" FontSize="12"/>
                                     </Border>
                                     <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                                             CornerRadius="4"
@@ -386,6 +386,63 @@
                                            FontSize="12"/>
                             </StackPanel>
                         </Grid>
+
+                        <!-- Check Update -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="检查更新" FontWeight="Medium"/>
+                                <TextBlock x:Name="UpdateStatusText"
+                                           Text="点击右侧按钮检查新版本"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           FontSize="12"/>
+                            </StackPanel>
+
+                            <Button x:Name="CheckUpdateButton"
+                                    Grid.Column="1"
+                                    Click="CheckUpdateButton_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE895;" FontSize="14"/>
+                                    <TextBlock Text="检查更新"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Changelog Expander -->
+                        <Expander x:Name="ChangelogExpander"
+                                  Header="更新日志"
+                                  HorizontalAlignment="Stretch"
+                                  HorizontalContentAlignment="Stretch"
+                                  Expanding="ChangelogExpander_Expanding">
+                            <StackPanel Spacing="8">
+                                <ProgressRing x:Name="ChangelogLoadingRing"
+                                              IsActive="False"
+                                              Width="24" Height="24"
+                                              Visibility="Collapsed"
+                                              HorizontalAlignment="Center"/>
+                                <ListView x:Name="ChangelogListView"
+                                          SelectionMode="None"
+                                          MaxHeight="400">
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Margin" Value="0,4"/>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                                <TextBlock x:Name="ChangelogEmptyText"
+                                           Text="暂无更新日志"
+                                           Visibility="Collapsed"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                           FontSize="13"/>
+                            </StackPanel>
+                        </Expander>
                     </StackPanel>
                 </Border>
 

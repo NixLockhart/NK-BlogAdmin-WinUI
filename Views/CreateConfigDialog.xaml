@@ -13,7 +13,7 @@
     PrimaryButtonClick="ContentDialog_PrimaryButtonClick">
 
     <ScrollViewer MaxHeight="500">
-        <StackPanel Spacing="16" Padding="4">
+        <StackPanel Spacing="16" Padding="4" Width="480">
             <!-- 配置键 -->
             <TextBox x:Name="ConfigKeyTextBox"
                      Header="配置键 *"

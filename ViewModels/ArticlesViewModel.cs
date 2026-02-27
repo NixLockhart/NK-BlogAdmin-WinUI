@@ -4,6 +4,7 @@ using Blog_Manager.Services.Api;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Dispatching;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace Blog_Manager.ViewModels
     public partial class ArticlesViewModel : ObservableObject
     {
         private readonly IArticleApi _articleApi;
+        private readonly ICategoryApi _categoryApi;
         private readonly DispatcherQueue? _dispatcherQueue;
 
         [ObservableProperty]
@@ -20,12 +22,20 @@ namespace Blog_Manager.ViewModels
         [ObservableProperty]
         private string _searchKeyword = string.Empty;
 
+        [ObservableProperty]
+        private string? _filterStatus = null;
+
+        [ObservableProperty]
+        private long? _filterCategoryId = null;
+
+        public List<Category> Categories { get; private set; } = new();
+
         public ArticlesViewModel()
         {
             var app = (Application.Current as App) ?? throw new InvalidOperationException("App instance not found");
             _articleApi = app.ApiServiceFactory.CreateArticleApi();
+            _categoryApi = app.ApiServiceFactory.CreateCategoryApi();
 
-            // 获取 UI 线程的 DispatcherQueue
             try
             {
                 if (app.Window?.DispatcherQueue != null)
@@ -33,9 +43,22 @@ namespace Blog_Manager.ViewModels
                     _dispatcherQueue = app.Window.DispatcherQueue;
                 }
             }
+            catch { }
+        }
+
+        public async Task LoadCategoriesAsync()
+        {
+            try
+            {
+                var response = await _categoryApi.GetCategoriesAsync();
+                if (response.Code == 200 && response.Data != null)
+                {
+                    Categories = response.Data;
+                }
+            }
             catch
             {
-                // 如果获取失败，后续会在 UI 线程上直接更新
+                Categories = new List<Category>();
             }
         }
 
@@ -43,18 +66,21 @@ namespace Blog_Manager.ViewModels
         {
             try
             {
-                // 获取所有文章，不分页
-                var response = await _articleApi.GetArticlesAsync(page: 0, size: 10000);
+                var keyword = string.IsNullOrWhiteSpace(SearchKeyword) ? null : SearchKeyword.Trim();
+
+                var response = await _articleApi.GetArticlesAsync(
+                    page: 0,
+                    size: 10000,
+                    keyword: keyword,
+                    categoryId: FilterCategoryId,
+                    status: FilterStatus);
 
                 if (response.Code == 200 && response.Data != null)
                 {
-                    // 确保在 UI 线程上更新集合
                     var articles = response.Data.Content;
 
                     void UpdateCollection()
                     {
-                        // 清空并重新填充集合，而不是替换整个集合
-                        // 这样可以避免 x:Bind 的绑定问题
                         Articles.Clear();
                         foreach (var article in articles)
                         {
@@ -64,30 +90,16 @@ namespace Blog_Manager.ViewModels
 
                     if (_dispatcherQueue != null && !_dispatcherQueue.HasThreadAccess)
                     {
-                        // 如果不在 UI 线程上，调度到 UI 线程执行
-                        bool enqueued = false;
-                        _dispatcherQueue.TryEnqueue(() =>
-                        {
-                            UpdateCollection();
-                            enqueued = true;
-                        });
-
-                        // 等待更新完成
-                        while (!enqueued)
-                        {
-                            await System.Threading.Tasks.Task.Delay(10);
-                        }
+                        _dispatcherQueue.TryEnqueue(UpdateCollection);
                     }
                     else
                     {
-                        // 已经在 UI 线程上，直接更新
                         UpdateCollection();
                     }
                 }
                 else
                 {
-                    var errorMsg = response.Message ?? "加载文章列表失败";
-                    throw new Exception(errorMsg);
+                    throw new Exception(response.Message ?? "加载文章列表失败");
                 }
             }
             catch (Exception ex)

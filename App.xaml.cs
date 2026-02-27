@@ -6,7 +6,6 @@ using Blog_Manager.Services.Api;
 using Blog_Manager.ViewModels;
 using Blog_Manager.Views;
 using System;
-using Windows.Storage;
 
 namespace Blog_Manager
 {
@@ -25,6 +24,7 @@ namespace Blog_Manager
         public AuthService AuthService { get; private set; }
         public ApiServiceFactory ApiServiceFactory { get; private set; }
         public BackendConfigService BackendConfigService { get; private set; }
+        public UpdateService UpdateService { get; private set; }
 
         // ViewModels
         public LoginViewModel LoginViewModel { get; private set; }
@@ -40,10 +40,19 @@ namespace Blog_Manager
 
         private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
-            // 记录异常信息到调试输出
-            System.Diagnostics.Debug.WriteLine($"未处理的异常: {e.Exception.Message}");
+            // 记录异常信息到日志文件
+            try
+            {
+                var logDir = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BlogManager");
+                System.IO.Directory.CreateDirectory(logDir);
+                var logFile = System.IO.Path.Combine(logDir, "crash.log");
+                var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] 未处理的异常: {e.Exception}\n\n";
+                System.IO.File.AppendAllText(logFile, msg);
+            }
+            catch { }
 
-            // 标记为已处理，防止应用崩溃
+            System.Diagnostics.Debug.WriteLine($"未处理的异常: {e.Exception.Message}");
             e.Handled = true;
         }
 
@@ -67,6 +76,9 @@ namespace Blog_Manager
             // 5. 创建ViewModels
             LoginViewModel = new LoginViewModel(AuthService);
 
+            // 6. 创建更新服务（独立于后端 API，使用 GitHub Releases）
+            UpdateService = new UpdateService();
+
             // 订阅登录成功事件
             LoginViewModel.LoginSuccessful += OnLoginSuccessful;
         }
@@ -76,33 +88,50 @@ namespace Blog_Manager
         /// </summary>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            m_window = new Window();
-
-            // 监听窗口关闭事件，释放资源
-            m_window.Closed += OnWindowClosed;
-
-            // 自定义标题栏设置
-            m_window.ExtendsContentIntoTitleBar = true;
-            m_window.SystemBackdrop = new MicaBackdrop();
-            m_window.AppWindow.TitleBar.PreferredHeightOption = Microsoft.UI.Windowing.TitleBarHeightOption.Tall;
-            m_window.AppWindow.SetIcon("Assets/Square44x44Logo.targetsize-24_altform-unplated.png");
-
-            // Load saved theme or use default
-            var themeSetting = LoadThemeSetting();
-
-            // Check if already authenticated
-            if (AuthService.IsAuthenticated)
+            try
             {
-                var mainWindow = new MainWindow();
-                SetContent(mainWindow, "博客管理系统 - Blog Manager", themeSetting);
-            }
-            else
-            {
-                var loginPage = new LoginPage();
-                SetContent(loginPage, "登录 - Blog Manager", themeSetting);
-            }
+                m_window = new Window();
 
-            m_window.Activate();
+                // 监听窗口关闭事件，释放资源
+                m_window.Closed += OnWindowClosed;
+
+                // 自定义标题栏设置
+                m_window.ExtendsContentIntoTitleBar = true;
+                m_window.SystemBackdrop = new MicaBackdrop();
+                m_window.AppWindow.TitleBar.PreferredHeightOption = Microsoft.UI.Windowing.TitleBarHeightOption.Tall;
+                m_window.AppWindow.SetIcon("Assets/Square44x44Logo.targetsize-24_altform-unplated.png");
+
+                // Load saved theme or use default
+                var themeSetting = LoadThemeSetting();
+
+                // Check if already authenticated
+                if (AuthService.IsAuthenticated)
+                {
+                    var mainWindow = new MainWindow();
+                    SetContent(mainWindow, "博客管理系统 - Blog Manager", themeSetting);
+                }
+                else
+                {
+                    var loginPage = new LoginPage();
+                    SetContent(loginPage, "登录 - Blog Manager", themeSetting);
+                }
+
+                m_window.Activate();
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    var logDir = System.IO.Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BlogManager");
+                    System.IO.Directory.CreateDirectory(logDir);
+                    var logFile = System.IO.Path.Combine(logDir, "crash.log");
+                    var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] OnLaunched 异常: {ex}\n\n";
+                    System.IO.File.AppendAllText(logFile, msg);
+                }
+                catch { }
+                throw;
+            }
         }
 
         /// <summary>
@@ -147,8 +176,7 @@ namespace Blog_Manager
 
         private string LoadThemeSetting()
         {
-            var localSettings = ApplicationData.Current.LocalSettings;
-            return localSettings.Values[ThemeSettingKey] as string ?? "Default";
+            return SettingsHelper.GetString(ThemeSettingKey) ?? "Default";
         }
 
         private void ApplyTheme(FrameworkElement rootElement, string theme)

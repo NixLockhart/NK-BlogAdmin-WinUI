@@ -1,11 +1,13 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Blog_Manager.Helpers;
+using Blog_Manager.Models;
 using Blog_Manager.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Windows.Storage;
+using System.Text;
 
 namespace Blog_Manager.Views
 {
@@ -87,6 +89,7 @@ namespace Blog_Manager.Views
         {
             LoadThemeSetting();
             LoadIpApiCredentials();
+            LoadVersionInfo();
         }
 
         private void LoadUserInfo()
@@ -113,8 +116,7 @@ namespace Blog_Manager.Views
 
             try
             {
-                var localSettings = ApplicationData.Current.LocalSettings;
-                var themeSetting = localSettings.Values[ThemeSettingKey] as string ?? "Default";
+                var themeSetting = SettingsHelper.GetString(ThemeSettingKey) ?? "Default";
 
                 // 设置对应的 RadioButton (确保控件已初始化)
                 if (LightThemeRadio != null && DarkThemeRadio != null && DefaultThemeRadio != null)
@@ -165,8 +167,7 @@ namespace Blog_Manager.Views
         private void SaveAndApplyTheme(string theme)
         {
             // 保存到本地存储
-            var localSettings = ApplicationData.Current.LocalSettings;
-            localSettings.Values[ThemeSettingKey] = theme;
+            SettingsHelper.SetValue(ThemeSettingKey, theme);
 
             // 应用主题
             var app = Application.Current as App;
@@ -338,9 +339,8 @@ namespace Blog_Manager.Views
         {
             try
             {
-                var localSettings = ApplicationData.Current.LocalSettings;
-                IpApiUserIdBox.Text = localSettings.Values["ip_api_userid"] as string ?? string.Empty;
-                var savedKey = localSettings.Values["ip_api_userkey"] as string ?? string.Empty;
+                IpApiUserIdBox.Text = SettingsHelper.GetString("ip_api_userid") ?? string.Empty;
+                var savedKey = SettingsHelper.GetString("ip_api_userkey") ?? string.Empty;
                 IpApiUserKeyBox.Password = savedKey;
             }
             catch (Exception ex)
@@ -371,6 +371,151 @@ namespace Blog_Manager.Views
             }
         }
 
+        #region 版本更新
+
+        private void LoadVersionInfo()
+        {
+            VersionText.Text = $"版本 {AppVersion.Current}";
+        }
+
+        private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+            var app = Application.Current as App;
+            if (app?.UpdateService == null)
+            {
+                ShowStatus("更新服务不可用", InfoBarSeverity.Error);
+                return;
+            }
+
+            CheckUpdateButton.IsEnabled = false;
+            UpdateStatusText.Text = "正在检查更新...";
+
+            try
+            {
+                var result = await app.UpdateService.CheckForUpdateAsync();
+
+                if (result == null)
+                {
+                    UpdateStatusText.Text = "无法获取版本信息，请检查 GitHub Token 配置";
+                    ShowStatus("检查更新失败：无法获取版本信息", InfoBarSeverity.Warning);
+                }
+                else if (!result.HasUpdate)
+                {
+                    UpdateStatusText.Text = $"当前已是最新版本 ({AppVersion.Current})";
+                    ShowStatus("当前已是最新版本", InfoBarSeverity.Success);
+                }
+                else if (result.IsMajorUpdate)
+                {
+                    UpdateStatusText.Text = $"发现重大更新: {result.LatestVersion}";
+                    // 显示强制更新对话框
+                    var mainWindow = (this.XamlRoot.Content as FrameworkElement)?.XamlRoot;
+                    var dialog = new UpdateDialog(result) { XamlRoot = this.XamlRoot };
+                    await dialog.ShowAsync();
+                }
+                else
+                {
+                    UpdateStatusText.Text = $"发现新版本: {result.LatestVersion}";
+                    var dialog = new UpdateDialog(result) { XamlRoot = this.XamlRoot };
+                    await dialog.ShowAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatusText.Text = $"检查失败: {ex.Message}";
+                ShowStatus($"检查更新失败: {ex.Message}", InfoBarSeverity.Error);
+            }
+            finally
+            {
+                CheckUpdateButton.IsEnabled = true;
+            }
+        }
+
+        private bool _changelogLoaded = false;
+
+        private async void ChangelogExpander_Expanding(Expander sender, ExpanderExpandingEventArgs args)
+        {
+            if (_changelogLoaded) return;
+
+            var app = Application.Current as App;
+            if (app?.UpdateService == null) return;
+
+            ChangelogLoadingRing.Visibility = Visibility.Visible;
+            ChangelogLoadingRing.IsActive = true;
+
+            try
+            {
+                var releases = await app.UpdateService.GetAllReleasesAsync();
+
+                if (releases.Count == 0)
+                {
+                    ChangelogEmptyText.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    var items = new ObservableCollection<ChangelogItem>();
+                    foreach (var release in releases)
+                    {
+                        items.Add(new ChangelogItem
+                        {
+                            Version = release.TagName,
+                            Title = release.Name,
+                            Body = string.IsNullOrWhiteSpace(release.Body) ? "暂无更新说明" : release.Body.Trim(),
+                            IsMajor = release.IsMajor
+                        });
+                    }
+
+                    ChangelogListView.ItemsSource = items;
+                    ChangelogListView.ItemTemplate = (DataTemplate)CreateChangelogItemTemplate();
+                }
+
+                _changelogLoaded = true;
+            }
+            catch (Exception ex)
+            {
+                ChangelogEmptyText.Text = $"加载失败: {ex.Message}";
+                ChangelogEmptyText.Visibility = Visibility.Visible;
+            }
+            finally
+            {
+                ChangelogLoadingRing.IsActive = false;
+                ChangelogLoadingRing.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private DataTemplate CreateChangelogItemTemplate()
+        {
+            // 使用代码创建 DataTemplate，因为 ChangelogItem 是内部类
+            var xaml = @"
+<DataTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+              xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
+    <Border Background=""{ThemeResource LayerFillColorDefaultBrush}""
+            BorderBrush=""{ThemeResource CardStrokeColorDefaultBrush}""
+            BorderThickness=""1""
+            CornerRadius=""6""
+            Padding=""16"">
+        <StackPanel Spacing=""8"">
+            <StackPanel Orientation=""Horizontal"" Spacing=""8"">
+                <TextBlock Text=""{Binding Version}""
+                           FontWeight=""SemiBold""
+                           FontSize=""14""/>
+                <TextBlock Text=""{Binding Title}""
+                           Foreground=""{ThemeResource TextFillColorSecondaryBrush}""
+                           FontSize=""13""/>
+            </StackPanel>
+            <TextBlock Text=""{Binding Body}""
+                       TextWrapping=""Wrap""
+                       FontSize=""12""
+                       Foreground=""{ThemeResource TextFillColorSecondaryBrush}""
+                       IsTextSelectionEnabled=""True""/>
+        </StackPanel>
+    </Border>
+</DataTemplate>";
+
+            return (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(xaml);
+        }
+
+        #endregion
+
         private void ShowStatus(string message, InfoBarSeverity severity)
         {
             StatusInfoBar.Message = message;
@@ -384,5 +529,16 @@ namespace Blog_Manager.Views
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+    }
+
+    /// <summary>
+    /// 更新日志展示项
+    /// </summary>
+    public class ChangelogItem
+    {
+        public string Version { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+        public bool IsMajor { get; set; }
     }
 }

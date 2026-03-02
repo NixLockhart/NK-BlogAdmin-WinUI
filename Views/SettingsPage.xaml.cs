@@ -89,6 +89,7 @@ namespace Blog_Manager.Views
         {
             LoadThemeSetting();
             LoadIpApiCredentials();
+            LoadGitHubToken();
             LoadVersionInfo();
         }
 
@@ -376,6 +377,32 @@ namespace Blog_Manager.Views
         private void LoadVersionInfo()
         {
             VersionText.Text = $"版本 {AppVersion.Current}";
+        }
+
+        private void LoadGitHubToken()
+        {
+            var token = SettingsHelper.GetString("github_token") ?? string.Empty;
+            GitHubTokenBox.Password = token;
+        }
+
+        private void SaveGitHubToken_Click(object sender, RoutedEventArgs e)
+        {
+            var token = GitHubTokenBox.Password?.Trim();
+            if (string.IsNullOrEmpty(token))
+            {
+                ShowStatus("Token 不能为空，如需移除请点击\"清除\"", InfoBarSeverity.Warning);
+                return;
+            }
+
+            SettingsHelper.SetValue("github_token", token);
+            ShowStatus("GitHub Token 已保存", InfoBarSeverity.Success);
+        }
+
+        private void ClearGitHubToken_Click(object sender, RoutedEventArgs e)
+        {
+            GitHubTokenBox.Password = string.Empty;
+            SettingsHelper.RemoveValue("github_token");
+            ShowStatus("GitHub Token 已清除", InfoBarSeverity.Success);
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)

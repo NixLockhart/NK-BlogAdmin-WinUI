@@ -282,6 +282,61 @@
                         <!-- Section Header -->
                         <StackPanel Spacing="4">
                             <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xF22C;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="GitHub Token"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock Text="配置 Personal Access Token 以提升 API 速率限制（60 → 5000 次/小时），Token 仅存储在本地"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"
+                                       Margin="28,0,0,0"/>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                        <!-- Token Input -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Token" FontWeight="Medium" VerticalAlignment="Center" Width="80"/>
+                            <PasswordBox x:Name="GitHubTokenBox"
+                                         Grid.Column="1"
+                                         PlaceholderText="ghp_xxxx（Fine-grained PAT，无需任何权限即可读取公开仓库）"/>
+                        </Grid>
+
+                        <!-- Save Button -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="SaveGitHubToken_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                                    <TextBlock Text="保存"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Click="ClearGitHubToken_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="14"/>
+                                    <TextBlock Text="清除"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Account Actions -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Section Header -->
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE8AB;" FontSize="18" Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                                 <TextBlock Text="账户操作"
                                            FontSize="16"

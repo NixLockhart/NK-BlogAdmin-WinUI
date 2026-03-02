@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -17,27 +18,54 @@ namespace Blog_Manager.Services
     {
         private const string GitHubRepo = "NixLockhart/NK-BlogAdmin-WinUI";
         private const string SkippedVersionKey = "skipped_version";
+        private const string GitHubTokenKey = "github_token";
 
-        // ETag cache to avoid counting against rate limit
+        // ETag + 响应缓存，条件请求返回 304 时不消耗速率配额
+        private static string? _latestETag;
+        private static GitHubRelease? _latestCache;
+
         private static string? _releasesETag;
         private static List<GitHubRelease>? _releasesCache;
 
         public string CurrentVersion => AppVersion.Current;
 
         /// <summary>
-        /// 从 GitHub Releases API 获取最新的 Release（不含 prerelease）
+        /// 从 GitHub Releases API 获取最新的 Release（带 ETag 缓存）
         /// </summary>
         public async Task<GitHubRelease?> GetLatestReleaseAsync()
         {
             using var client = CreateHttpClient();
             var url = $"https://api.github.com/repos/{GitHubRepo}/releases/latest";
-            var response = await client.GetAsync(url);
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            if (_latestETag != null)
+                request.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(_latestETag));
+
+            var response = await client.SendAsync(request);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
                 return null;
+
+            // 304 Not Modified — 使用缓存，不消耗速率配额
+            if (response.StatusCode == HttpStatusCode.NotModified && _latestCache != null)
+                return _latestCache;
+
+            // 403 速率限制 — 如果有缓存则降级使用缓存
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                if (_latestCache != null)
+                    return _latestCache;
+                throw new HttpRequestException("GitHub API 速率限制，请稍后再试");
+            }
+
             response.EnsureSuccessStatusCode();
 
+            if (response.Headers.ETag != null)
+                _latestETag = response.Headers.ETag.Tag;
+
             var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<GitHubRelease>(json);
+            _latestCache = JsonConvert.DeserializeObject<GitHubRelease>(json);
+            return _latestCache;
         }
 
         /// <summary>
@@ -50,12 +78,20 @@ namespace Blog_Manager.Services
 
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             if (_releasesETag != null)
-                request.Headers.IfNoneMatch.Add(new System.Net.Http.Headers.EntityTagHeaderValue(_releasesETag));
+                request.Headers.IfNoneMatch.Add(new EntityTagHeaderValue(_releasesETag));
 
             var response = await client.SendAsync(request);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.NotModified && _releasesCache != null)
+            if (response.StatusCode == HttpStatusCode.NotModified && _releasesCache != null)
                 return _releasesCache;
+
+            // 403 速率限制 — 如果有缓存则降级使用缓存
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                if (_releasesCache != null)
+                    return _releasesCache;
+                throw new HttpRequestException("GitHub API 速率限制，请稍后再试");
+            }
 
             response.EnsureSuccessStatusCode();
 
@@ -201,6 +237,14 @@ namespace Blog_Manager.Services
                 new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
             client.DefaultRequestHeaders.UserAgent.Add(
                 new ProductInfoHeaderValue("BlogManager", CurrentVersion));
+
+            // 如果配置了 GitHub Token，添加认证头（速率限制从 60 → 5000 次/小时）
+            var token = SettingsHelper.GetString(GitHubTokenKey);
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
 
             return client;
         }

@@ -200,13 +200,32 @@
                                        Click="ViewArticleButton_Click"
                                        Tag="{x:Bind Id, Mode=OneWay}"
                                        Visibility="{x:Bind IsDeletedVisibility, Mode=OneWay}"/>
+                                <!-- 置顶按钮（非已删除文章） -->
                                 <Button Content="置顶"
                                        Click="ToggleTopButton_Click"
                                        Tag="{x:Bind Id, Mode=OneWay}"
-                                       IsEnabled="{x:Bind IsEditable, Mode=OneWay}"/>
+                                       Visibility="{x:Bind IsNotDeletedVisibility, Mode=OneWay}"/>
+                                <!-- 恢复按钮（已删除文章） -->
+                                <Button Content="恢复"
+                                       Click="RestoreArticleButton_Click"
+                                       Tag="{x:Bind Id, Mode=OneWay}"
+                                       Visibility="{x:Bind IsDeletedVisibility, Mode=OneWay}"/>
+                                <!-- 删除按钮（非已删除文章） -->
                                 <Button Content="删除"
                                        Click="DeleteArticleButton_Click"
-                                       Tag="{x:Bind Id, Mode=OneWay}">
+                                       Tag="{x:Bind Id, Mode=OneWay}"
+                                       Visibility="{x:Bind IsNotDeletedVisibility, Mode=OneWay}">
+                                    <Button.Resources>
+                                        <SolidColorBrush x:Key="ButtonForeground" Color="Red"/>
+                                        <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="Red"/>
+                                        <SolidColorBrush x:Key="ButtonForegroundPressed" Color="DarkRed"/>
+                                    </Button.Resources>
+                                </Button>
+                                <!-- 永久删除按钮（已删除文章） -->
+                                <Button Content="永久删除"
+                                       Click="PermanentDeleteArticleButton_Click"
+                                       Tag="{x:Bind Id, Mode=OneWay}"
+                                       Visibility="{x:Bind IsDeletedVisibility, Mode=OneWay}">
                                     <Button.Resources>
                                         <SolidColorBrush x:Key="ButtonForeground" Color="Red"/>
                                         <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="Red"/>

@@ -65,5 +65,14 @@ namespace Blog_Manager.Views
                 ViewModel.ErrorMessage = $"刷新失败: {ex.Message}";
             }
         }
+
+        private void ChartSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (VisitTrendChart == null || ArticleRankingChart == null) return;
+
+            var index = ChartSelector.SelectedIndex;
+            VisitTrendChart.Visibility = index == 0 ? Visibility.Visible : Visibility.Collapsed;
+            ArticleRankingChart.Visibility = index == 1 ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

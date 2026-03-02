@@ -133,14 +133,7 @@ namespace Blog_Manager.Views
             {
                 if (string.IsNullOrWhiteSpace(nameBox.Text))
                 {
-                    var errorDialog = new ContentDialog
-                    {
-                        Title = "验证失败",
-                        Content = "分类名称不能为空",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await errorDialog.ShowAsync();
+                    App.ShowWarning("分类名称不能为空");
                     return;
                 }
 
@@ -167,14 +160,7 @@ namespace Blog_Manager.Views
                 }
                 catch (Exception ex)
                 {
-                    var errorDialog = new ContentDialog
-                    {
-                        Title = "操作失败",
-                        Content = ex.Message,
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await errorDialog.ShowAsync();
+                    App.ShowError(ex.Message);
                 }
             }
         }
@@ -238,14 +224,7 @@ namespace Blog_Manager.Views
                     }
                     catch (Exception ex)
                     {
-                        var errorDialog = new ContentDialog
-                        {
-                            Title = "删除失败",
-                            Content = ex.Message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await errorDialog.ShowAsync();
+                        App.ShowError($"删除失败: {ex.Message}");
                     }
                 }
             }
@@ -264,14 +243,7 @@ namespace Blog_Manager.Views
                     }
                     catch (Exception ex)
                     {
-                        var errorDialog = new ContentDialog
-                        {
-                            Title = "操作失败",
-                            Content = ex.Message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await errorDialog.ShowAsync();
+                        App.ShowError(ex.Message);
                     }
                 }
             }
@@ -290,14 +262,7 @@ namespace Blog_Manager.Views
                     }
                     catch (Exception ex)
                     {
-                        var errorDialog = new ContentDialog
-                        {
-                            Title = "操作失败",
-                            Content = ex.Message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await errorDialog.ShowAsync();
+                        App.ShowError(ex.Message);
                     }
                 }
             }

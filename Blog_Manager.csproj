@@ -21,6 +21,8 @@
     <InformationalVersion>unknown</InformationalVersion>
     <!-- 禁止 .NET SDK 自动追加 git commit hash 到 InformationalVersion -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!-- 只保留中文和英文资源，去除其他语言文件夹 -->
+    <SatelliteResourceLanguages>zh-Hans;en</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <!-- 发布时复制 XAML 编译产物（XBF、PRI），dotnet publish 不会自动包含 -->
@@ -67,6 +69,7 @@
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WinUI" Version="2.0.0-rc6.1" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 </Project>

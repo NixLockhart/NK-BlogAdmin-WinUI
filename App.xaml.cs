@@ -25,6 +25,7 @@ namespace Blog_Manager
         public ApiServiceFactory ApiServiceFactory { get; private set; }
         public BackendConfigService BackendConfigService { get; private set; }
         public UpdateService UpdateService { get; private set; }
+        public NotificationService NotificationService { get; private set; }
 
         // ViewModels
         public LoginViewModel LoginViewModel { get; private set; }
@@ -78,6 +79,9 @@ namespace Blog_Manager
 
             // 6. 创建更新服务（独立于后端 API，使用 GitHub Releases）
             UpdateService = new UpdateService();
+
+            // 7. 创建通知服务
+            NotificationService = new NotificationService();
 
             // 订阅登录成功事件
             LoginViewModel.LoginSuccessful += OnLoginSuccessful;
@@ -216,5 +220,18 @@ namespace Blog_Manager
             // 释放 ApiServiceFactory 中的 HttpClient 资源
             ApiServiceFactory?.Dispose();
         }
+
+        // 静态通知辅助方法，供各页面调用
+        public static void ShowSuccess(string message) =>
+            (Current as App)?.NotificationService?.ShowSuccess(message);
+
+        public static void ShowError(string message) =>
+            (Current as App)?.NotificationService?.ShowError(message);
+
+        public static void ShowWarning(string message) =>
+            (Current as App)?.NotificationService?.ShowWarning(message);
+
+        public static void ShowInfo(string message) =>
+            (Current as App)?.NotificationService?.ShowInfo(message);
     }
 }

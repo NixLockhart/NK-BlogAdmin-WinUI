@@ -40,7 +40,6 @@ namespace Blog_Manager.Views
 
                 // 启用开发者工具（用于调试）
                 PreviewWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
-                PreviewWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
 
                 // 监听导航完成事件
                 PreviewWebView.NavigationCompleted += PreviewWebView_NavigationCompleted;
@@ -187,6 +186,9 @@ namespace Blog_Manager.Views
 
                     await ViewModel.LoadArticleAsync(articleId);
 
+                    // 文章加载完成，IsEditMode 已更新，刷新工具栏以显示正确按钮文字（"更新发布"）
+                    GetMainWindow()?.RefreshEditorToolbar();
+
                     // 检查是否为只读模式或已删除文章
                     if (isViewOnlyMode || ViewModel.Status == 0)
                     {
@@ -269,17 +271,6 @@ namespace Blog_Manager.Views
         public void OnBackClick()
         {
             _ = HandleBackNavigationAsync();
-        }
-
-        /// <summary>
-        /// 开发者工具按钮点击 - 供 MainWindow 调用
-        /// </summary>
-        public void OnDevToolsClick()
-        {
-            if (PreviewWebView?.CoreWebView2 != null)
-            {
-                PreviewWebView.CoreWebView2.OpenDevToolsWindow();
-            }
         }
 
         /// <summary>
@@ -416,15 +407,6 @@ namespace Blog_Manager.Views
             }
         }
 
-        private void DevToolsButton_Click(object sender, RoutedEventArgs e)
-        {
-            // 打开WebView2开发者工具
-            if (PreviewWebView?.CoreWebView2 != null)
-            {
-                PreviewWebView.CoreWebView2.OpenDevToolsWindow();
-            }
-        }
-
         private async void SaveDraftButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(ViewModel.Content))
@@ -451,14 +433,25 @@ namespace Blog_Manager.Views
 
         private async System.Threading.Tasks.Task ShowPublishDialogAndSave()
         {
-            // Create publish configuration dialog
-            var dialog = new PublishConfigDialog(ViewModel);
-            dialog.XamlRoot = this.XamlRoot;
+            // 暂停自动保存，防止对话框期间的竞态条件
+            ViewModel.IsAutoSavePaused = true;
 
-            var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
+            try
             {
-                await SaveArticle();
+                // Create publish configuration dialog
+                var dialog = new PublishConfigDialog(ViewModel);
+                dialog.XamlRoot = this.XamlRoot;
+
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    await SaveArticle();
+                    return; // SaveArticle 会调用 NavigateBack，不需要恢复自动保存
+                }
+            }
+            finally
+            {
+                ViewModel.IsAutoSavePaused = false;
             }
         }
 
@@ -472,15 +465,7 @@ namespace Blog_Manager.Views
             {
                 await ViewModel.SaveArticleAsync();
 
-                var dialog = new ContentDialog
-                {
-                    Title = "保存成功",
-                    Content = ViewModel.Status == 1 ? "文章已发布" : "文章已保存为草稿",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-
-                await dialog.ShowAsync();
+                App.ShowSuccess(ViewModel.Status == 1 ? "文章已发布" : "文章已保存为草稿");
                 NavigateBack();
             }
             catch (Exception ex)

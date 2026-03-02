@@ -45,5 +45,13 @@ namespace Blog_Manager.Services.Api
         [Put("/api/admin/articles/{id}/draft")]
         [Headers("Authorization: Bearer")]
         Task<ApiResult<Article>> UnpublishArticleAsync(long id);
+
+        [Put("/api/admin/articles/{id}/restore")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<object>> RestoreArticleAsync(long id);
+
+        [Delete("/api/admin/articles/{id}/permanent")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<object>> PermanentlyDeleteArticleAsync(long id);
     }
 }

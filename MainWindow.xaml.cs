@@ -62,6 +62,13 @@ namespace Blog_Manager
 
             // 监听Frame导航事件
             ContentFrame.Navigated += ContentFrame_Navigated;
+
+            // 初始化通知服务
+            var app = Application.Current as App;
+            if (app?.NotificationService != null)
+            {
+                app.NotificationService.Initialize(NotificationContainer, this.DispatcherQueue);
+            }
         }
 
         /// <summary>
@@ -179,13 +186,6 @@ namespace Blog_Manager
                 ToolbarContainer.Children.Add(autoSavePanel);
             }
 
-            // 开发者工具按钮
-            var devToolsBtn = new Button();
-            ToolTipService.SetToolTip(devToolsBtn, "打开预览开发者工具");
-            devToolsBtn.Content = new SymbolIcon(Symbol.Repair);
-            devToolsBtn.Click += (s, e) => editorPage.OnDevToolsClick();
-            ToolbarContainer.Children.Add(devToolsBtn);
-
             // 只读模式下不显示保存和发布按钮
             if (!isReadOnly)
             {
@@ -202,7 +202,7 @@ namespace Blog_Manager
                 var publishBtn = new Button { Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
                 var publishPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
                 publishPanel.Children.Add(new SymbolIcon(Symbol.Globe));
-                publishPanel.Children.Add(new TextBlock { Text = "发布文章", VerticalAlignment = VerticalAlignment.Center });
+                publishPanel.Children.Add(new TextBlock { Text = editorPage.ViewModel.IsEditMode ? "更新发布" : "发布文章", VerticalAlignment = VerticalAlignment.Center });
                 publishBtn.Content = publishPanel;
                 publishBtn.Click += (s, e) => editorPage.OnPublishClick();
                 ToolbarContainer.Children.Add(publishBtn);

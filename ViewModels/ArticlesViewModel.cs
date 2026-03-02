@@ -139,5 +139,37 @@ namespace Blog_Manager.ViewModels
                 throw new Exception($"删除文章失败: {ex.Message}");
             }
         }
+
+        public async Task RestoreArticleAsync(long articleId)
+        {
+            try
+            {
+                var response = await _articleApi.RestoreArticleAsync(articleId);
+                if (response.Code != 200)
+                {
+                    throw new Exception(response.Message ?? "恢复文章失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"恢复文章失败: {ex.Message}");
+            }
+        }
+
+        public async Task PermanentlyDeleteArticleAsync(long articleId)
+        {
+            try
+            {
+                var response = await _articleApi.PermanentlyDeleteArticleAsync(articleId);
+                if (response.Code != 200)
+                {
+                    throw new Exception(response.Message ?? "永久删除文章失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"永久删除文章失败: {ex.Message}");
+            }
+        }
     }
 }

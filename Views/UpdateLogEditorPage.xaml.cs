@@ -186,15 +186,7 @@ namespace Blog_Manager.Views
                 // 更新原始值（保存成功后）
                 SaveOriginalValues();
 
-                // 显示成功消息
-                var dialog = new ContentDialog
-                {
-                    Title = "成功",
-                    Content = IsEditMode ? "更新日志已保存" : "更新日志已创建",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await dialog.ShowAsync();
+                App.ShowSuccess(IsEditMode ? "更新日志已保存" : "更新日志已创建");
 
                 // 返回列表页
                 NavigateBack();

@@ -45,14 +45,7 @@ namespace Blog_Manager.Views
             }
             catch (Exception ex)
             {
-                var dialog = new ContentDialog
-                {
-                    Title = "错误",
-                    Content = ex.Message,
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await dialog.ShowAsync();
+                App.ShowError(ex.Message);
             }
         }
 
@@ -74,26 +67,11 @@ namespace Blog_Manager.Views
                 {
                     await ViewModel.CreateConfigAsync(dialog.Result);
                     await LoadConfigsAsync();
-
-                    var successDialog = new ContentDialog
-                    {
-                        Title = "成功",
-                        Content = "配置创建成功",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await successDialog.ShowAsync();
+                    App.ShowSuccess("配置创建成功");
                 }
                 catch (Exception ex)
                 {
-                    var errorDialog = new ContentDialog
-                    {
-                        Title = "错误",
-                        Content = ex.Message,
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await errorDialog.ShowAsync();
+                    App.ShowError(ex.Message);
                 }
             }
         }
@@ -113,26 +91,11 @@ namespace Blog_Manager.Views
                         {
                             await ViewModel.UpdateConfigAsync(configKey, textBox.Text);
                             await LoadConfigsAsync();
-
-                            var dialog = new ContentDialog
-                            {
-                                Title = "成功",
-                                Content = "配置已更新",
-                                CloseButtonText = "确定",
-                                XamlRoot = this.XamlRoot
-                            };
-                            await dialog.ShowAsync();
+                            App.ShowSuccess("配置已更新");
                         }
                         catch (Exception ex)
                         {
-                            var dialog = new ContentDialog
-                            {
-                                Title = "错误",
-                                Content = ex.Message,
-                                CloseButtonText = "确定",
-                                XamlRoot = this.XamlRoot
-                            };
-                            await dialog.ShowAsync();
+                            App.ShowError(ex.Message);
                         }
                     }
                 }
@@ -160,26 +123,11 @@ namespace Blog_Manager.Views
                     {
                         await ViewModel.DeleteConfigAsync(configKey);
                         await LoadConfigsAsync();
-
-                        var dialog = new ContentDialog
-                        {
-                            Title = "成功",
-                            Content = "配置已删除",
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        App.ShowSuccess("配置已删除");
                     }
                     catch (Exception ex)
                     {
-                        var dialog = new ContentDialog
-                        {
-                            Title = "错误",
-                            Content = ex.Message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        App.ShowError(ex.Message);
                     }
                 }
             }

@@ -44,16 +44,9 @@ namespace Blog_Manager.Views
             var coverImage = _viewModel.CoverImage;
             if (!string.IsNullOrEmpty(coverImage))
             {
-                // 提取相对路径
-                if (coverImage.StartsWith("http://") || coverImage.StartsWith("https://"))
-                {
-                    var uri = new Uri(coverImage);
-                    _coverImageRelativePath = uri.PathAndQuery;
-                }
-                else
-                {
-                    _coverImageRelativePath = coverImage;
-                }
+                // 统一转换为相对路径（去掉 /files/ 前缀、查询参数等）
+                // 与后端 ImageUrlService.toRelativePath 保持一致
+                _coverImageRelativePath = Helpers.AppContext.ToRelativePath(coverImage);
 
                 // 更新UI
                 UpdateCoverPreview(_coverImageRelativePath);
@@ -67,15 +60,7 @@ namespace Blog_Manager.Views
             if (CategoryComboBox.SelectedValue == null)
             {
                 args.Cancel = true;
-
-                var errorDialog = new ContentDialog
-                {
-                    Title = "验证失败",
-                    Content = "请选择文章分类",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                _ = errorDialog.ShowAsync();
+                App.ShowWarning("请选择文章分类");
                 return;
             }
 
@@ -154,14 +139,7 @@ namespace Blog_Manager.Views
                 // 检查是否有文章ID（如果没有，说明自动保存还没触发）
                 if (!_viewModel.ArticleId.HasValue)
                 {
-                    var tipDialog = new ContentDialog
-                    {
-                        Title = "提示",
-                        Content = "检测到文章尚未自动保存，请稍等片刻后再试，或先输入一些内容以触发自动保存",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await tipDialog.ShowAsync();
+                    App.ShowInfo("检测到文章尚未自动保存，请稍等片刻后再试，或先输入一些内容以触发自动保存");
                     return;
                 }
 
@@ -192,15 +170,7 @@ namespace Blog_Manager.Views
             {
                 // 隐藏进度条
                 UploadProgressBar.Visibility = Visibility.Collapsed;
-
-                var errorDialog = new ContentDialog
-                {
-                    Title = "上传失败",
-                    Content = $"上传封面失败: {ex.Message}",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await errorDialog.ShowAsync();
+                App.ShowError($"上传封面失败: {ex.Message}");
             }
             finally
             {

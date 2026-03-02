@@ -59,12 +59,24 @@
                     <Button x:Name="InsertH3Button" Content="H3" Click="InsertH3_Click" ToolTipService.ToolTip="三级标题" Style="{StaticResource SubtleButtonStyle}"/>
                     <Button x:Name="InsertBoldButton" Content="B" FontWeight="Bold" Click="InsertBold_Click" ToolTipService.ToolTip="粗体" Style="{StaticResource SubtleButtonStyle}"/>
                     <Button x:Name="InsertItalicButton" Content="I" FontStyle="Italic" Click="InsertItalic_Click" ToolTipService.ToolTip="斜体" Style="{StaticResource SubtleButtonStyle}"/>
-                    <Button x:Name="InsertLinkButton" Content="Link" Click="InsertLink_Click" ToolTipService.ToolTip="链接" Style="{StaticResource SubtleButtonStyle}"/>
-                    <Button x:Name="UploadImageButton" Content="Image" Click="UploadImage_Click" ToolTipService.ToolTip="上传图片" Style="{StaticResource SubtleButtonStyle}"/>
-                    <Button x:Name="InsertCodeButton" Content="Code" Click="InsertCode_Click" ToolTipService.ToolTip="代码块" Style="{StaticResource SubtleButtonStyle}"/>
-                    <Button x:Name="InsertQuoteButton" Content="Quote" Click="InsertQuote_Click" ToolTipService.ToolTip="引用" Style="{StaticResource SubtleButtonStyle}"/>
-                    <Button x:Name="InsertListButton" Content="List" Click="InsertList_Click" ToolTipService.ToolTip="列表" Style="{StaticResource SubtleButtonStyle}"/>
-                    <Button x:Name="InsertMathButton" Content="Math" Click="InsertMath_Click" ToolTipService.ToolTip="LaTeX公式" Style="{StaticResource SubtleButtonStyle}"/>
+                    <Button x:Name="InsertLinkButton" Click="InsertLink_Click" ToolTipService.ToolTip="链接" Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon Glyph="&#xE71B;" FontSize="14"/>
+                    </Button>
+                    <Button x:Name="UploadImageButton" Click="UploadImage_Click" ToolTipService.ToolTip="上传图片" Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon Glyph="&#xE8B9;" FontSize="14"/>
+                    </Button>
+                    <Button x:Name="InsertCodeButton" Click="InsertCode_Click" ToolTipService.ToolTip="代码块" Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon Glyph="&#xE943;" FontSize="14"/>
+                    </Button>
+                    <Button x:Name="InsertQuoteButton" Click="InsertQuote_Click" ToolTipService.ToolTip="引用" Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon Glyph="&#xE8AF;" FontSize="14"/>
+                    </Button>
+                    <Button x:Name="InsertListButton" Click="InsertList_Click" ToolTipService.ToolTip="列表" Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon Glyph="&#xE8FD;" FontSize="14"/>
+                    </Button>
+                    <Button x:Name="InsertMathButton" Click="InsertMath_Click" ToolTipService.ToolTip="LaTeX公式" Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon Glyph="&#xE94B;" FontSize="14"/>
+                    </Button>
                 </StackPanel>
             </Grid>
 

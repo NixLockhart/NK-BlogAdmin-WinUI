@@ -12,6 +12,7 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <converters:StringToImageSourceConverter x:Key="StringToImageSourceConverter"/>
     </Page.Resources>
 
     <Grid Padding="24">
@@ -51,7 +52,7 @@
                                        CornerRadius="8,8,0,0"
                                        Background="{ThemeResource LayerFillColorDefaultBrush}">
                                     <Grid>
-                                        <Image Source="{x:Bind CoverUrl}"
+                                        <Image Source="{x:Bind CoverUrl, Converter={StaticResource StringToImageSourceConverter}}"
                                               Stretch="UniformToFill"
                                               HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>

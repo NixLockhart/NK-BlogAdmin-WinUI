@@ -60,5 +60,49 @@ namespace Blog_Manager.Helpers
             var normalizedPath = apiPath.StartsWith("/") ? apiPath : "/" + apiPath;
             return baseUrl + normalizedPath;
         }
+
+        /// <summary>
+        /// 从 URL 路径中提取相对路径（去掉 /files/ 前缀）。
+        /// 与后端 ImageUrlService.toRelativePath 逻辑对应。
+        /// 例如："/files/images/covers/1.jpg" → "images/covers/1.jpg"
+        ///       "images/covers/1.jpg" → "images/covers/1.jpg"（已是相对路径，原样返回）
+        ///       "http://host/files/images/covers/1.jpg" → "images/covers/1.jpg"
+        /// </summary>
+        public static string ToRelativePath(string? pathOrUrl)
+        {
+            if (string.IsNullOrEmpty(pathOrUrl))
+                return string.Empty;
+
+            var path = pathOrUrl;
+
+            // 完整 URL → 提取路径部分
+            if (path.StartsWith("http://", System.StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("https://", System.StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var uri = new System.Uri(path);
+                    path = uri.AbsolutePath;
+                }
+                catch
+                {
+                    return path;
+                }
+            }
+
+            // 去掉查询参数
+            var queryIndex = path.IndexOf('?');
+            if (queryIndex >= 0)
+                path = path.Substring(0, queryIndex);
+
+            // 去掉 /files/ 前缀
+            if (path.StartsWith("/files/", System.StringComparison.OrdinalIgnoreCase))
+                path = path.Substring("/files/".Length);
+            else if (path.StartsWith("/files", System.StringComparison.OrdinalIgnoreCase))
+                path = path.Substring("/files".Length).TrimStart('/');
+
+            // 去掉前导斜杠
+            return path.TrimStart('/');
+        }
     }
 }

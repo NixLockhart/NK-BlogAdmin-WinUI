@@ -80,14 +80,7 @@ namespace Blog_Manager.Views
             }
             catch (Exception ex)
             {
-                var dialog = new ContentDialog
-                {
-                    Title = "错误",
-                    Content = ex.Message,
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await dialog.ShowAsync();
+                App.ShowError(ex.Message);
             }
         }
 
@@ -110,26 +103,11 @@ namespace Blog_Manager.Views
                 {
                     await ViewModel.ApproveCommentAsync(commentId);
                     await LoadCommentsAsync();
-
-                    var dialog = new ContentDialog
-                    {
-                        Title = "成功",
-                        Content = "评论已审核通过",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    App.ShowSuccess("评论已审核通过");
                 }
                 catch (Exception ex)
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = "错误",
-                        Content = ex.Message,
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    App.ShowError(ex.Message);
                 }
             }
         }
@@ -142,26 +120,11 @@ namespace Blog_Manager.Views
                 {
                     await ViewModel.RejectCommentAsync(commentId);
                     await LoadCommentsAsync();
-
-                    var dialog = new ContentDialog
-                    {
-                        Title = "成功",
-                        Content = "评论已标记为待审核",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    App.ShowSuccess("评论已标记为待审核");
                 }
                 catch (Exception ex)
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = "错误",
-                        Content = ex.Message,
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    App.ShowError(ex.Message);
                 }
             }
         }
@@ -187,26 +150,11 @@ namespace Blog_Manager.Views
                     {
                         await ViewModel.DeleteCommentAsync(commentId);
                         await LoadCommentsAsync();
-
-                        var dialog = new ContentDialog
-                        {
-                            Title = "成功",
-                            Content = "评论已删除",
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        App.ShowSuccess("评论已删除");
                     }
                     catch (Exception ex)
                     {
-                        var dialog = new ContentDialog
-                        {
-                            Title = "错误",
-                            Content = ex.Message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        App.ShowError(ex.Message);
                     }
                 }
             }

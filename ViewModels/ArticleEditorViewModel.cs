@@ -33,6 +33,9 @@ namespace Blog_Manager.ViewModels
         private long? _originalCategoryId;
         private int _originalStatus;
 
+        // 标记是否为新建文章模式（用于取消时删除自动保存创建的文章）
+        private bool _isNewArticle = true;
+
         [ObservableProperty]
         private long? _articleId;
 
@@ -81,6 +84,9 @@ namespace Blog_Manager.ViewModels
 
         [ObservableProperty]
         private bool _isAutoSaving = false;
+
+        // 暂停自动保存（在发布对话框打开期间暂停，防止竞态条件）
+        public bool IsAutoSavePaused { get; set; } = false;
 
         public bool IsEditMode => ArticleId.HasValue;
 
@@ -150,7 +156,7 @@ namespace Blog_Manager.ViewModels
                 bool hasContent = !string.IsNullOrWhiteSpace(Content);
                 bool contentChanged = Content != _lastSavedContent || Title != _lastSavedTitle;
 
-                if (!hasContent || !contentChanged || IsAutoSaving)
+                if (!hasContent || !contentChanged || IsAutoSaving || IsAutoSavePaused)
                 {
                     return;
                 }
@@ -248,6 +254,7 @@ namespace Blog_Manager.ViewModels
         {
             try
             {
+                _isNewArticle = false; // 编辑现有文章，非新建模式
                 ArticleId = articleId;
                 var response = await _articleApi.GetArticleAsync(articleId);
 
@@ -256,7 +263,10 @@ namespace Blog_Manager.ViewModels
                     var article = response.Data;
                     Title = article.Title;
                     Summary = article.Summary ?? string.Empty;
-                    CoverImage = article.CoverImage ?? string.Empty;
+                    // API 返回的是 URL 路径（如 "/files/images/covers/1.jpg"），
+                    // 统一转换为相对路径（如 "images/covers/1.jpg"），
+                    // 确保前端存储的格式与上传接口返回的格式一致，避免后端比较时产生不匹配。
+                    CoverImage = Helpers.AppContext.ToRelativePath(article.CoverImage);
                     CategoryId = article.CategoryId;
                     Status = article.Status;
                     Content = article.MarkdownContent ?? article.Content ?? string.Empty;
@@ -343,13 +353,18 @@ namespace Blog_Manager.ViewModels
         {
             try
             {
-                // 如果不是编辑模式（新建文章），直接返回true，无需回滚
-                if (!IsEditMode)
+                // 如果是新建文章模式
+                if (_isNewArticle)
                 {
+                    // 如果自动保存已经创建了文章，删除它
+                    if (ArticleId.HasValue)
+                    {
+                        await _articleApi.DeleteArticleAsync(ArticleId.Value);
+                    }
                     return true;
                 }
 
-                // 恢复到原始内容并保存到服务器
+                // 编辑模式：恢复到原始内容并保存到服务器
                 var request = new ArticleSaveRequest
                 {
                     Title = _originalTitle,

@@ -46,14 +46,7 @@ namespace Blog_Manager.Views
             }
             catch (Exception ex)
             {
-                var dialog = new ContentDialog
-                {
-                    Title = "错误",
-                    Content = ex.Message,
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await dialog.ShowAsync();
+                App.ShowError(ex.Message);
             }
         }
 
@@ -75,25 +68,11 @@ namespace Blog_Manager.Views
                     await ViewModel.CreateAnnouncementAsync(announcement);
                     await LoadAnnouncementsAsync();
 
-                    var successDialog = new ContentDialog
-                    {
-                        Title = "成功",
-                        Content = "公告已创建",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await successDialog.ShowAsync();
+                    App.ShowSuccess("公告已创建");
                 }
                 catch (Exception ex)
                 {
-                    var errorDialog = new ContentDialog
-                    {
-                        Title = "错误",
-                        Content = ex.Message,
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await errorDialog.ShowAsync();
+                    App.ShowError(ex.Message);
                 }
             }
         }
@@ -116,25 +95,11 @@ namespace Blog_Manager.Views
                             await ViewModel.UpdateAnnouncementAsync(announcementId, updatedAnnouncement);
                             await LoadAnnouncementsAsync();
 
-                            var successDialog = new ContentDialog
-                            {
-                                Title = "成功",
-                                Content = "公告已更新",
-                                CloseButtonText = "确定",
-                                XamlRoot = this.XamlRoot
-                            };
-                            await successDialog.ShowAsync();
+                            App.ShowSuccess("公告已更新");
                         }
                         catch (Exception ex)
                         {
-                            var errorDialog = new ContentDialog
-                            {
-                                Title = "错误",
-                                Content = ex.Message,
-                                CloseButtonText = "确定",
-                                XamlRoot = this.XamlRoot
-                            };
-                            await errorDialog.ShowAsync();
+                            App.ShowError(ex.Message);
                         }
                     }
                 }
@@ -163,25 +128,11 @@ namespace Blog_Manager.Views
                         await ViewModel.DeleteAnnouncementAsync(announcementId);
                         await LoadAnnouncementsAsync();
 
-                        var dialog = new ContentDialog
-                        {
-                            Title = "成功",
-                            Content = "公告已删除",
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        App.ShowSuccess("公告已删除");
                     }
                     catch (Exception ex)
                     {
-                        var dialog = new ContentDialog
-                        {
-                            Title = "错误",
-                            Content = ex.Message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        App.ShowError(ex.Message);
                     }
                 }
             }

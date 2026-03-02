@@ -18,39 +18,65 @@ namespace Blog_Manager.Services
         private const string GitHubRepo = "NixLockhart/NK-BlogAdmin-WinUI";
         private const string SkippedVersionKey = "skipped_version";
 
+        // ETag cache to avoid counting against rate limit
+        private static string? _releasesETag;
+        private static List<GitHubRelease>? _releasesCache;
+
         public string CurrentVersion => AppVersion.Current;
 
         /// <summary>
-        /// 从 GitHub Releases API 获取所有 Release
+        /// 从 GitHub Releases API 获取最新的 Release（不含 prerelease）
+        /// </summary>
+        public async Task<GitHubRelease?> GetLatestReleaseAsync()
+        {
+            using var client = CreateHttpClient();
+            var url = $"https://api.github.com/repos/{GitHubRepo}/releases/latest";
+            var response = await client.GetAsync(url);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return null;
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<GitHubRelease>(json);
+        }
+
+        /// <summary>
+        /// 从 GitHub Releases API 获取所有 Release（带 ETag 缓存）
         /// </summary>
         public async Task<List<GitHubRelease>> GetAllReleasesAsync()
         {
             using var client = CreateHttpClient();
             var url = $"https://api.github.com/repos/{GitHubRepo}/releases";
-            var response = await client.GetAsync(url);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            if (_releasesETag != null)
+                request.Headers.IfNoneMatch.Add(new System.Net.Http.Headers.EntityTagHeaderValue(_releasesETag));
+
+            var response = await client.SendAsync(request);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotModified && _releasesCache != null)
+                return _releasesCache;
+
             response.EnsureSuccessStatusCode();
 
+            // Cache ETag for future conditional requests
+            if (response.Headers.ETag != null)
+                _releasesETag = response.Headers.ETag.Tag;
+
             var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<List<GitHubRelease>>(json) ?? new List<GitHubRelease>();
+            _releasesCache = JsonConvert.DeserializeObject<List<GitHubRelease>>(json) ?? new List<GitHubRelease>();
+            return _releasesCache;
         }
 
         /// <summary>
-        /// 检查是否有可用更新
+        /// 检查是否有可用更新（先用 /latest 轻量检查，有更新时再拉完整列表）
         /// </summary>
         public async Task<UpdateCheckResult?> CheckForUpdateAsync()
         {
-            var allReleases = await GetAllReleasesAsync();
-            if (allReleases.Count == 0) return null;
+            // Step 1: Lightweight check via /releases/latest (single API call)
+            var latest = await GetLatestReleaseAsync();
+            if (latest == null) return null;
 
-            // 过滤掉 prerelease，按版本号降序排序
-            var stableReleases = allReleases
-                .Where(r => !r.Prerelease)
-                .OrderByDescending(r => r.TagName, new VersionComparer())
-                .ToList();
-
-            if (stableReleases.Count == 0) return null;
-
-            var latest = stableReleases[0];
             var latestVersion = latest.TagName;
             var hasUpdate = VersionHelper.IsNewer(latestVersion, CurrentVersion);
 
@@ -60,19 +86,32 @@ namespace Blog_Manager.Services
                 {
                     HasUpdate = false,
                     LatestVersion = latestVersion,
-                    AllReleases = stableReleases
+                    AllReleases = new List<GitHubRelease> { latest }
                 };
             }
 
-            // 筛选比当前版本更新的所有 Release
+            // Step 2: Has update — fetch all releases for changelog (with ETag cache)
+            List<GitHubRelease> stableReleases;
+            try
+            {
+                var allReleases = await GetAllReleasesAsync();
+                stableReleases = allReleases
+                    .Where(r => !r.Prerelease)
+                    .OrderByDescending(r => r.TagName, new VersionComparer())
+                    .ToList();
+            }
+            catch
+            {
+                // If fetching all releases fails (rate limit), fall back to latest only
+                stableReleases = new List<GitHubRelease> { latest };
+            }
+
             var newReleases = stableReleases
                 .Where(r => VersionHelper.IsNewer(r.TagName, CurrentVersion))
                 .ToList();
 
-            // 任一新 Release 标记了 [MAJOR] 则视为大版本更新
             var isMajor = newReleases.Any(r => r.IsMajor);
 
-            // 从最新 Release 的 assets 中找 .exe 安装包
             var exeAsset = latest.Assets?.FirstOrDefault(a =>
                 a.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
 

@@ -185,15 +185,7 @@ namespace Blog_Manager.Views
 
                     if (success)
                     {
-                        // 弹窗提示需要保存
-                        var dialog = new ContentDialog
-                        {
-                            Title = "头像上传成功",
-                            Content = "头像已上传，请点击「保存更改」以应用新头像。",
-                            CloseButtonText = "我知道了",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await dialog.ShowAsync();
+                        App.ShowInfo("头像已上传，请点击「保存更改」以应用新头像");
                     }
                     else
                     {
@@ -224,15 +216,7 @@ namespace Blog_Manager.Views
                     await ViewModel.LoadProfileAsync();
                     UpdateDisplayInfo();
 
-                    // 弹窗提示成功
-                    var dialog = new ContentDialog
-                    {
-                        Title = "保存成功",
-                        Content = "个人信息已更新。",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    App.ShowSuccess("个人信息已更新");
                 }
                 else
                 {
@@ -288,53 +272,25 @@ namespace Blog_Manager.Views
             // 前端验证
             if (string.IsNullOrWhiteSpace(OldPasswordBox.Password))
             {
-                var errorDialog = new ContentDialog
-                {
-                    Title = "修改失败",
-                    Content = "请输入当前密码",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await errorDialog.ShowAsync();
+                App.ShowWarning("请输入当前密码");
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(NewPasswordBox.Password))
             {
-                var errorDialog = new ContentDialog
-                {
-                    Title = "修改失败",
-                    Content = "请输入新密码",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await errorDialog.ShowAsync();
+                App.ShowWarning("请输入新密码");
                 return;
             }
 
             if (NewPasswordBox.Password.Length < 8)
             {
-                var errorDialog = new ContentDialog
-                {
-                    Title = "修改失败",
-                    Content = "新密码长度至少8位",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await errorDialog.ShowAsync();
+                App.ShowWarning("新密码长度至少8位");
                 return;
             }
 
             if (NewPasswordBox.Password != ConfirmPasswordBox.Password)
             {
-                var errorDialog = new ContentDialog
-                {
-                    Title = "修改失败",
-                    Content = "新密码与确认密码不一致",
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await errorDialog.ShowAsync();
+                App.ShowWarning("新密码与确认密码不一致");
                 return;
             }
 
@@ -366,27 +322,11 @@ namespace Blog_Manager.Views
                         NewPasswordBox.Password = string.Empty;
                         ConfirmPasswordBox.Password = string.Empty;
 
-                        // 提示用户修改成功
-                        var successDialog = new ContentDialog
-                        {
-                            Title = "密码修改成功",
-                            Content = "您的密码已成功修改，建议重新登录以确保安全。",
-                            CloseButtonText = "我知道了",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await successDialog.ShowAsync();
+                        App.ShowSuccess("密码已成功修改，建议重新登录以确保安全");
                     }
                     else
                     {
-                        // 提示用户修改失败
-                        var failDialog = new ContentDialog
-                        {
-                            Title = "密码修改失败",
-                            Content = message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await failDialog.ShowAsync();
+                        App.ShowError(message);
                     }
                 }
                 finally

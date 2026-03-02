@@ -170,14 +170,7 @@ namespace Blog_Manager.Views
                 }
                 catch (Exception ex)
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = "操作失败",
-                        Content = ex.Message,
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    App.ShowError($"置顶操作失败: {ex.Message}");
                 }
             }
         }
@@ -189,7 +182,7 @@ namespace Blog_Manager.Views
                 var dialog = new ContentDialog
                 {
                     Title = "确认删除",
-                    Content = "确定要删除这篇文章吗？",
+                    Content = "确定要删除这篇文章吗？删除后可在30天内恢复。",
                     PrimaryButtonText = "删除",
                     CloseButtonText = "取消",
                     DefaultButton = ContentDialogButton.Close,
@@ -206,14 +199,53 @@ namespace Blog_Manager.Views
                     }
                     catch (Exception ex)
                     {
-                        var errorDialog = new ContentDialog
-                        {
-                            Title = "删除失败",
-                            Content = ex.Message,
-                            CloseButtonText = "确定",
-                            XamlRoot = this.XamlRoot
-                        };
-                        await errorDialog.ShowAsync();
+                        App.ShowError($"删除失败: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private async void RestoreArticleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is long articleId)
+            {
+                try
+                {
+                    await ViewModel.RestoreArticleAsync(articleId);
+                    await LoadArticlesAsync();
+                }
+                catch (Exception ex)
+                {
+                    App.ShowError($"恢复失败: {ex.Message}");
+                }
+            }
+        }
+
+        private async void PermanentDeleteArticleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is long articleId)
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = "永久删除",
+                    Content = "确定要永久删除这篇文章吗？\n\n此操作不可逆，文章及其所有评论、图片将被彻底删除。",
+                    PrimaryButtonText = "永久删除",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    try
+                    {
+                        await ViewModel.PermanentlyDeleteArticleAsync(articleId);
+                        await LoadArticlesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        App.ShowError($"永久删除失败: {ex.Message}");
                     }
                 }
             }

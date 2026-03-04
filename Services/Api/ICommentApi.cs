@@ -25,5 +25,13 @@ namespace Blog_Manager.Services.Api
         [Delete("/api/admin/comments/{id}")]
         [Headers("Authorization: Bearer")]
         Task<ApiResult<object>> DeleteCommentAsync(long id);
+
+        [Delete("/api/admin/comments/{id}/permanent")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<object>> PermanentlyDeleteCommentAsync(long id);
+
+        [Put("/api/admin/comments/{id}/restore")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<object>> RestoreCommentAsync(long id);
     }
 }

@@ -5,8 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Blog_Manager.Models"
-    mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    mc:Ignorable="d">
 
     <Grid Padding="24">
         <!-- Messages List (Animated) -->
@@ -93,6 +92,15 @@
                                                           FontSize="12"/>
                                             </StackPanel>
                                         </Border>
+                                        <!-- 删除倒计时 -->
+                                        <Border Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                                               CornerRadius="4"
+                                               Padding="6,2"
+                                               Visibility="{x:Bind DeletionCountdownVisibility}">
+                                            <TextBlock Text="{x:Bind DeletionCountdownText}"
+                                                      FontSize="11"
+                                                      Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                        </Border>
                                         <!-- 友链标签 -->
                                         <Border Background="{ThemeResource SystemFillColorSuccessBrush}"
                                                CornerRadius="4"
@@ -140,12 +148,29 @@
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>
-                                    <!-- 已删除状态显示提示文字 -->
-                                    <TextBlock Text="该留言已被删除"
-                                              Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                              FontStyle="Italic"
-                                              FontSize="12"
-                                              Visibility="{x:Bind IsDeletedVisibility}"/>
+                                    <!-- 已删除状态显示恢复和永久删除按钮 -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                               Visibility="{x:Bind IsDeletedVisibility}">
+                                        <Button Tag="{x:Bind Id}"
+                                               Click="RestoreButton_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE72C;"/>
+                                                <TextBlock Text="恢复" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Tag="{x:Bind Id}"
+                                               Click="PermanentDeleteButton_Click">
+                                            <Button.Resources>
+                                                <SolidColorBrush x:Key="ButtonForeground" Color="#D32F2F"/>
+                                                <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#D32F2F"/>
+                                                <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#B71C1C"/>
+                                            </Button.Resources>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <SymbolIcon Symbol="Delete"/>
+                                                <TextBlock Text="永久删除" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
                                 </Grid>
                             </Grid>
                         </Border>

@@ -124,5 +124,37 @@ namespace Blog_Manager.ViewModels
                 throw new Exception($"删除留言失败: {ex.Message}");
             }
         }
+
+        public async Task PermanentlyDeleteMessageAsync(long messageId)
+        {
+            try
+            {
+                var response = await _messageApi.PermanentlyDeleteMessageAsync(messageId);
+                if (response.Code != 200)
+                {
+                    throw new Exception(response.Message ?? "永久删除留言失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"永久删除留言失败: {ex.Message}");
+            }
+        }
+
+        public async Task RestoreMessageAsync(long messageId)
+        {
+            try
+            {
+                var response = await _messageApi.RestoreMessageAsync(messageId);
+                if (response.Code != 200)
+                {
+                    throw new Exception(response.Message ?? "恢复留言失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"恢复留言失败: {ex.Message}");
+            }
+        }
     }
 }

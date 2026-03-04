@@ -7,8 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Blog_Manager.Models"
     xmlns:converters="using:Blog_Manager.Converters"
-    mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    mc:Ignorable="d">
 
     <Page.Resources>
         <converters:StringToUriConverter x:Key="StringToUriConverter"/>
@@ -159,6 +158,15 @@
                                     <TextBlock Text="{x:Bind CreatedAtText, Mode=OneWay}"
                                              Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                              FontSize="11"/>
+                                    <!-- 永久删除倒计时 -->
+                                    <Border Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                                            CornerRadius="4"
+                                            Padding="6,2"
+                                            Visibility="{x:Bind DeletionCountdownVisibility, Mode=OneWay}">
+                                        <TextBlock Text="{x:Bind DeletionCountdownText, Mode=OneWay}"
+                                                   FontSize="11"
+                                                   Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                    </Border>
                                 </StackPanel>
 
                                 <!-- Stats -->

@@ -40,6 +40,9 @@ namespace Blog_Manager.Models
         [JsonProperty("createdAt")]
         public DateTime CreatedAt { get; set; }
 
+        [JsonProperty("deletedAt")]
+        public DateTime? DeletedAt { get; set; }
+
         // UI helper properties
         public bool IsFriend => IsFriendLink == 1;
 
@@ -50,6 +53,31 @@ namespace Blog_Manager.Models
         public Visibility IsDeletedVisibility => IsDeleted ? Visibility.Visible : Visibility.Collapsed;
 
         public Visibility NotDeletedVisibility => IsDeleted ? Visibility.Collapsed : Visibility.Visible;
+
+        public int DaysUntilPermanentDeletion
+        {
+            get
+            {
+                if (Status != 0 || DeletedAt == null) return -1;
+                var deadline = DeletedAt.Value.AddDays(30);
+                var remaining = (deadline - DateTime.Now).Days;
+                return remaining < 0 ? 0 : remaining;
+            }
+        }
+
+        public string DeletionCountdownText
+        {
+            get
+            {
+                var days = DaysUntilPermanentDeletion;
+                if (days < 0) return string.Empty;
+                if (days == 0) return "今天将被永久删除";
+                return $"{days}天后永久删除";
+            }
+        }
+
+        public Visibility DeletionCountdownVisibility =>
+            (Status == 0 && DeletedAt != null) ? Visibility.Visible : Visibility.Collapsed;
 
         public string FriendLinkButtonText => IsFriend ? "取消友链" : "设为友链";
 

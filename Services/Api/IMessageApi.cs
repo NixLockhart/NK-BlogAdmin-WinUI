@@ -22,5 +22,13 @@ namespace Blog_Manager.Services.Api
         [Delete("/api/admin/messages/{id}")]
         [Headers("Authorization: Bearer")]
         Task<ApiResult<object>> DeleteMessageAsync(long id);
+
+        [Delete("/api/admin/messages/{id}/permanent")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<object>> PermanentlyDeleteMessageAsync(long id);
+
+        [Put("/api/admin/messages/{id}/restore")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<object>> RestoreMessageAsync(long id);
     }
 }

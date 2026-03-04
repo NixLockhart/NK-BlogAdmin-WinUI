@@ -161,7 +161,7 @@
 
             <!-- 内容区域 -->
             <Grid x:Name="ContentContainer"
-                  Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+                  Background="{ThemeResource LayerFillColorDefaultBrush}">
                 <Frame x:Name="ContentFrame"/>
             </Grid>
         </NavigationView>
@@ -182,7 +182,7 @@
         <Grid x:Name="ForceUpdateOverlay"
               Grid.Row="1"
               Visibility="Collapsed"
-              Background="{ThemeResource LayerFillColorDefaultBrush}">
+              Background="{ThemeResource SolidBackgroundFillColorBaseBrush}">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Spacing="24" MaxWidth="500" Padding="48">

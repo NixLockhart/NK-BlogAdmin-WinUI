@@ -106,5 +106,53 @@ namespace Blog_Manager.Views
                 }
             }
         }
+
+        private async void PermanentDeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is long messageId)
+            {
+                var confirmDialog = new ContentDialog
+                {
+                    Title = "永久删除",
+                    Content = "确定要永久删除这条留言吗？\n\n此操作不可逆，留言将被彻底删除。",
+                    PrimaryButtonText = "永久删除",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await confirmDialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    try
+                    {
+                        await ViewModel.PermanentlyDeleteMessageAsync(messageId);
+                        await LoadMessagesAsync();
+                        App.ShowSuccess("留言已永久删除");
+                    }
+                    catch (Exception ex)
+                    {
+                        App.ShowError($"永久删除失败: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private async void RestoreButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is long messageId)
+            {
+                try
+                {
+                    await ViewModel.RestoreMessageAsync(messageId);
+                    await LoadMessagesAsync();
+                    App.ShowSuccess("留言已恢复");
+                }
+                catch (Exception ex)
+                {
+                    App.ShowError($"恢复失败: {ex.Message}");
+                }
+            }
+        }
     }
 }

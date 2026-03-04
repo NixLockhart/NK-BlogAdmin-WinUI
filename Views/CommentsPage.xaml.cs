@@ -160,6 +160,54 @@ namespace Blog_Manager.Views
             }
         }
 
+        private async void PermanentDeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is long commentId)
+            {
+                var confirmDialog = new ContentDialog
+                {
+                    Title = "永久删除",
+                    Content = "确定要永久删除这条评论吗？\n\n此操作不可逆，评论及其所有子评论将被彻底删除。",
+                    PrimaryButtonText = "永久删除",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await confirmDialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    try
+                    {
+                        await ViewModel.PermanentlyDeleteCommentAsync(commentId);
+                        await LoadCommentsAsync();
+                        App.ShowSuccess("评论已永久删除");
+                    }
+                    catch (Exception ex)
+                    {
+                        App.ShowError($"永久删除失败: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private async void RestoreButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is long commentId)
+            {
+                try
+                {
+                    await ViewModel.RestoreCommentAsync(commentId);
+                    await LoadCommentsAsync();
+                    App.ShowSuccess("评论已恢复");
+                }
+                catch (Exception ex)
+                {
+                    App.ShowError($"恢复失败: {ex.Message}");
+                }
+            }
+        }
+
         private async void ArticleFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!_isInitialized)
@@ -181,7 +229,13 @@ namespace Blog_Manager.Views
             {
                 if (int.TryParse(tagStr, out int status))
                 {
-                    ViewModel.FilterStatus = status == 0 ? null : (int?)status;
+                    // Tag: 0=全部(null), 1=已审核, 2=待审核, 3=已删除(status=0)
+                    if (status == 0)
+                        ViewModel.FilterStatus = null;
+                    else if (status == 3)
+                        ViewModel.FilterStatus = 0;
+                    else
+                        ViewModel.FilterStatus = status;
                     await LoadCommentsAsync();
                 }
             }

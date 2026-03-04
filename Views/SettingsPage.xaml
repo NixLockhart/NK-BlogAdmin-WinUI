@@ -8,8 +8,7 @@
     xmlns:converters="using:Blog_Manager.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    mc:Ignorable="d">
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
@@ -503,13 +502,5 @@
 
             </StackPanel>
         </ScrollViewer>
-
-        <!-- Status InfoBar -->
-        <InfoBar x:Name="StatusInfoBar"
-                 VerticalAlignment="Bottom"
-                 HorizontalAlignment="Center"
-                 Margin="0,0,0,24"
-                 Visibility="Collapsed"
-                 IsClosable="True"/>
     </Grid>
 </Page>

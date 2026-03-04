@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Blog_Manager.Helpers;
 using Newtonsoft.Json;
@@ -12,16 +14,49 @@ namespace Blog_Manager.Services
     /// <summary>
     /// 后端服务器配置项
     /// </summary>
-    public class BackendServer
+    public class BackendServer : INotifyPropertyChanged
     {
         public string Name { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
         public bool IsDefault { get; set; }
         public bool IsCustom { get; set; }
-        public DateTime? LastTestedAt { get; set; }
-        public bool? LastTestResult { get; set; }
+
+        private DateTime? _lastTestedAt;
+        public DateTime? LastTestedAt
+        {
+            get => _lastTestedAt;
+            set
+            {
+                if (_lastTestedAt != value)
+                {
+                    _lastTestedAt = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private bool? _lastTestResult;
+        public bool? LastTestResult
+        {
+            get => _lastTestResult;
+            set
+            {
+                if (_lastTestResult != value)
+                {
+                    _lastTestResult = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public string DisplayName => $"{Name} ({Url})";
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     /// <summary>

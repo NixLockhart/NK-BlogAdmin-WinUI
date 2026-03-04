@@ -17,7 +17,7 @@ namespace Blog_Manager.Views
         private readonly BackendConfigService _backendConfigService;
         private readonly IpLocationService _ipLocationService;
         private const string ThemeSettingKey = "AppTheme";
-        private bool _isLoadingTheme = false;
+        private bool _isLoadingTheme = true;
 
         public ObservableCollection<BackendServer> BackendServers => _backendConfigService.Backends;
 
@@ -193,7 +193,7 @@ namespace Blog_Manager.Views
                             break;
                     }
 
-                    ShowStatus("主题已更新", InfoBarSeverity.Success);
+                    App.ShowSuccess("主题已更新");
                 }
             }
             // 使用原生标题栏，无需手动设置颜色
@@ -234,7 +234,8 @@ namespace Blog_Manager.Views
             if (sender is Button button && button.Tag is string backendUrl)
             {
                 button.IsEnabled = false;
-                ShowStatus("正在测试连接...", InfoBarSeverity.Informational);
+                var originalContent = button.Content;
+                button.Content = new ProgressRing { Width = 14, Height = 14, IsActive = true };
 
                 try
                 {
@@ -242,19 +243,20 @@ namespace Blog_Manager.Views
 
                     if (success)
                     {
-                        ShowStatus($"✓ {message}", InfoBarSeverity.Success);
+                        App.ShowSuccess(message);
                     }
                     else
                     {
-                        ShowStatus($"✗ {message}", InfoBarSeverity.Error);
+                        App.ShowError(message);
                     }
                 }
                 catch (Exception ex)
                 {
-                    ShowStatus($"测试失败: {ex.Message}", InfoBarSeverity.Error);
+                    App.ShowError($"测试失败: {ex.Message}");
                 }
                 finally
                 {
+                    button.Content = originalContent;
                     button.IsEnabled = true;
                 }
             }
@@ -282,11 +284,11 @@ namespace Blog_Manager.Views
                     try
                     {
                         _backendConfigService.RemoveCustomBackend(backendUrl);
-                        ShowStatus("后端删除成功", InfoBarSeverity.Success);
+                        App.ShowSuccess("后端删除成功");
                     }
                     catch (Exception ex)
                     {
-                        ShowStatus($"删除失败: {ex.Message}", InfoBarSeverity.Error);
+                        App.ShowError($"删除失败: {ex.Message}");
                     }
                 }
             }
@@ -308,12 +310,9 @@ namespace Blog_Manager.Views
 
                 if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(url))
                 {
-                    ShowStatus("后端名称和地址不能为空", InfoBarSeverity.Warning);
+                    App.ShowWarning("后端名称和地址不能为空");
                     return;
                 }
-
-                // 先测试连接
-                ShowStatus("正在测试连接...", InfoBarSeverity.Informational);
 
                 var (success, message) = await _backendConfigService.TestBackendAsync(url);
 
@@ -322,16 +321,16 @@ namespace Blog_Manager.Views
                     try
                     {
                         _backendConfigService.AddCustomBackend(name, url);
-                        ShowStatus($"后端 \"{name}\" 添加成功", InfoBarSeverity.Success);
+                        App.ShowSuccess($"后端 \"{name}\" 添加成功");
                     }
                     catch (Exception ex)
                     {
-                        ShowStatus($"添加失败: {ex.Message}", InfoBarSeverity.Error);
+                        App.ShowError($"添加失败: {ex.Message}");
                     }
                 }
                 else
                 {
-                    ShowStatus($"连接测试失败: {message}，未添加该后端", InfoBarSeverity.Error);
+                    App.ShowError($"连接测试失败: {message}，未添加该后端");
                 }
             }
         }
@@ -357,18 +356,18 @@ namespace Blog_Manager.Views
 
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userKey))
             {
-                ShowStatus("用户 ID 和密钥不能为空", InfoBarSeverity.Warning);
+                App.ShowWarning("用户 ID 和密钥不能为空");
                 return;
             }
 
             try
             {
                 _ipLocationService.SetCredentials(userId, userKey);
-                ShowStatus("IP 属地 API 凭据已保存", InfoBarSeverity.Success);
+                App.ShowSuccess("IP 属地 API 凭据已保存");
             }
             catch (Exception ex)
             {
-                ShowStatus($"保存失败: {ex.Message}", InfoBarSeverity.Error);
+                App.ShowError($"保存失败: {ex.Message}");
             }
         }
 
@@ -390,19 +389,19 @@ namespace Blog_Manager.Views
             var token = GitHubTokenBox.Password?.Trim();
             if (string.IsNullOrEmpty(token))
             {
-                ShowStatus("Token 不能为空，如需移除请点击\"清除\"", InfoBarSeverity.Warning);
+                App.ShowWarning("Token 不能为空，如需移除请点击\"清除\"");
                 return;
             }
 
             SettingsHelper.SetValue("github_token", token);
-            ShowStatus("GitHub Token 已保存", InfoBarSeverity.Success);
+            App.ShowSuccess("GitHub Token 已保存");
         }
 
         private void ClearGitHubToken_Click(object sender, RoutedEventArgs e)
         {
             GitHubTokenBox.Password = string.Empty;
             SettingsHelper.RemoveValue("github_token");
-            ShowStatus("GitHub Token 已清除", InfoBarSeverity.Success);
+            App.ShowSuccess("GitHub Token 已清除");
         }
 
         private async void CheckUpdateButton_Click(object sender, RoutedEventArgs e)
@@ -410,7 +409,7 @@ namespace Blog_Manager.Views
             var app = Application.Current as App;
             if (app?.UpdateService == null)
             {
-                ShowStatus("更新服务不可用", InfoBarSeverity.Error);
+                App.ShowError("更新服务不可用");
                 return;
             }
 
@@ -424,20 +423,19 @@ namespace Blog_Manager.Views
                 if (result == null)
                 {
                     UpdateStatusText.Text = "无法获取版本信息，请检查 GitHub Token 配置";
-                    ShowStatus("检查更新失败：无法获取版本信息", InfoBarSeverity.Warning);
+                    App.ShowWarning("检查更新失败：无法获取版本信息");
                 }
                 else if (!result.HasUpdate)
                 {
                     UpdateStatusText.Text = $"当前已是最新版本 ({AppVersion.Current})";
-                    ShowStatus("当前已是最新版本", InfoBarSeverity.Success);
+                    App.ShowSuccess("当前已是最新版本");
                 }
                 else if (result.IsMajorUpdate)
                 {
                     UpdateStatusText.Text = $"发现重大更新: {result.LatestVersion}";
-                    // 显示强制更新对话框
-                    var mainWindow = (this.XamlRoot.Content as FrameworkElement)?.XamlRoot;
-                    var dialog = new UpdateDialog(result) { XamlRoot = this.XamlRoot };
-                    await dialog.ShowAsync();
+                    var app2 = Application.Current as App;
+                    var mainWindow = app2?.Window?.Content as MainWindow;
+                    mainWindow?.ShowForceUpdateOverlay(result);
                 }
                 else
                 {
@@ -449,7 +447,7 @@ namespace Blog_Manager.Views
             catch (Exception ex)
             {
                 UpdateStatusText.Text = $"检查失败: {ex.Message}";
-                ShowStatus($"检查更新失败: {ex.Message}", InfoBarSeverity.Error);
+                App.ShowError($"检查更新失败: {ex.Message}");
             }
             finally
             {
@@ -542,13 +540,6 @@ namespace Blog_Manager.Views
         }
 
         #endregion
-
-        private void ShowStatus(string message, InfoBarSeverity severity)
-        {
-            StatusInfoBar.Message = message;
-            StatusInfoBar.Severity = severity;
-            StatusInfoBar.Visibility = Visibility.Visible;
-        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

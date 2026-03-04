@@ -606,7 +606,7 @@ namespace Blog_Manager
             }
         }
 
-        private void ShowForceUpdateOverlay(UpdateCheckResult result)
+        public void ShowForceUpdateOverlay(UpdateCheckResult result)
         {
             _forceUpdateResult = result;
 

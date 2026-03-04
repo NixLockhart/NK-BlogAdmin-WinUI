@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -53,6 +54,9 @@ namespace Blog_Manager.Models
         [JsonProperty("createdAt")]
         public DateTime CreatedAt { get; set; }
 
+        [JsonProperty("deletedAt")]
+        public DateTime? DeletedAt { get; set; }
+
         [JsonProperty("children")]
         public List<Comment> Children { get; set; } = new();
 
@@ -65,6 +69,37 @@ namespace Blog_Manager.Models
         };
 
         public bool IsApproved => Status == 1;
+
+        public bool IsDeleted => Status == 0;
+
+        public Visibility IsDeletedVisibility => Status == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        public Visibility IsNotDeletedVisibility => Status != 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        public int DaysUntilPermanentDeletion
+        {
+            get
+            {
+                if (Status != 0 || DeletedAt == null) return -1;
+                var deadline = DeletedAt.Value.AddDays(30);
+                var remaining = (deadline - DateTime.Now).Days;
+                return remaining < 0 ? 0 : remaining;
+            }
+        }
+
+        public string DeletionCountdownText
+        {
+            get
+            {
+                var days = DaysUntilPermanentDeletion;
+                if (days < 0) return string.Empty;
+                if (days == 0) return "今天将被永久删除";
+                return $"{days}天后永久删除";
+            }
+        }
+
+        public Visibility DeletionCountdownVisibility =>
+            (Status == 0 && DeletedAt != null) ? Visibility.Visible : Visibility.Collapsed;
 
         /// <summary>
         /// 安全获取文章标题

@@ -6,8 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:Blog_Manager.Models"
     xmlns:converters="using:Blog_Manager.Converters"
-    mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    mc:Ignorable="d">
 
     <Page.Resources>
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
@@ -56,6 +55,7 @@
                         <ComboBoxItem Content="全部" Tag="0"/>
                         <ComboBoxItem Content="已审核" Tag="1"/>
                         <ComboBoxItem Content="待审核" Tag="2"/>
+                        <ComboBoxItem Content="已删除" Tag="3"/>
                     </ComboBox>
                 </StackPanel>
 
@@ -138,6 +138,22 @@
                                                       Foreground="White"
                                                       FontSize="12"/>
                                         </Border>
+                                        <Border Background="{ThemeResource SystemFillColorCriticalBrush}"
+                                               CornerRadius="4"
+                                               Padding="8,4"
+                                               Visibility="{x:Bind IsDeletedVisibility}">
+                                            <TextBlock Text="已删除"
+                                                      Foreground="White"
+                                                      FontSize="12"/>
+                                        </Border>
+                                        <Border Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                                               CornerRadius="4"
+                                               Padding="6,2"
+                                               Visibility="{x:Bind DeletionCountdownVisibility}">
+                                            <TextBlock Text="{x:Bind DeletionCountdownText}"
+                                                      FontSize="11"
+                                                      Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
+                                        </Border>
                                     </StackPanel>
                                 </Grid>
 
@@ -191,7 +207,8 @@
                                           Margin="0,0,0,12"/>
 
                                 <!-- Row 5: Actions -->
-                                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8">
+                                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8"
+                                           Visibility="{x:Bind IsNotDeletedVisibility}">
                                     <Button Tag="{x:Bind Id}"
                                            Click="ApproveButton_Click"
                                            Visibility="{x:Bind IsApproved, Converter={StaticResource InverseBoolToVisibilityConverter}}">
@@ -218,6 +235,29 @@
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <SymbolIcon Symbol="Delete"/>
                                             <TextBlock Text="删除" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                                <!-- 已删除评论显示恢复和永久删除按钮 -->
+                                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8"
+                                           Visibility="{x:Bind IsDeletedVisibility}">
+                                    <Button Tag="{x:Bind Id}"
+                                           Click="RestoreButton_Click">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE72C;"/>
+                                            <TextBlock Text="恢复" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Tag="{x:Bind Id}"
+                                           Click="PermanentDeleteButton_Click">
+                                        <Button.Resources>
+                                            <SolidColorBrush x:Key="ButtonForeground" Color="#D32F2F"/>
+                                            <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#D32F2F"/>
+                                            <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#B71C1C"/>
+                                        </Button.Resources>
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <SymbolIcon Symbol="Delete"/>
+                                            <TextBlock Text="永久删除" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>

@@ -44,6 +44,12 @@ namespace Blog_Manager.Views
             ViewModel = app?.LoginViewModel ?? throw new InvalidOperationException("LoginViewModel not found");
             _backendConfigService = app?.BackendConfigService ?? throw new InvalidOperationException("BackendConfigService not found");
 
+            // 初始化通知服务（登录页独立的通知容器）
+            if (app?.NotificationService != null)
+            {
+                app.NotificationService.Initialize(NotificationContainer, this.DispatcherQueue);
+            }
+
             // 设置当前选中的后端
             var currentBackend = _backendConfigService.GetCurrentBackend();
             SelectedBackend = currentBackend;
@@ -64,11 +70,11 @@ namespace Blog_Manager.Views
                 try
                 {
                     _backendConfigService.SetCurrentBackend(SelectedBackend.Url);
-                    ShowBackendStatus($"已切换到: {SelectedBackend.Name}", InfoBarSeverity.Informational);
+                    App.ShowInfo($"已切换到: {SelectedBackend.Name}");
                 }
                 catch (Exception ex)
                 {
-                    ShowBackendStatus($"切换失败: {ex.Message}", InfoBarSeverity.Error);
+                    App.ShowError($"切换失败: {ex.Message}");
                 }
             }
         }
@@ -77,12 +83,13 @@ namespace Blog_Manager.Views
         {
             if (SelectedBackend == null)
             {
-                ShowBackendStatus("请先选择后端服务器", InfoBarSeverity.Warning);
+                App.ShowWarning("请先选择后端服务器");
                 return;
             }
 
             TestBackendButton.IsEnabled = false;
-            ShowBackendStatus("正在测试连接...", InfoBarSeverity.Informational);
+            var originalContent = TestBackendButton.Content;
+            TestBackendButton.Content = new ProgressRing { Width = 16, Height = 16, IsActive = true };
 
             try
             {
@@ -90,19 +97,20 @@ namespace Blog_Manager.Views
 
                 if (success)
                 {
-                    ShowBackendStatus($"✓ {message}", InfoBarSeverity.Success);
+                    App.ShowSuccess(message);
                 }
                 else
                 {
-                    ShowBackendStatus($"✗ {message}", InfoBarSeverity.Error);
+                    App.ShowError(message);
                 }
             }
             catch (Exception ex)
             {
-                ShowBackendStatus($"测试失败: {ex.Message}", InfoBarSeverity.Error);
+                App.ShowError($"测试失败: {ex.Message}");
             }
             finally
             {
+                TestBackendButton.Content = originalContent;
                 TestBackendButton.IsEnabled = true;
             }
         }
@@ -123,12 +131,9 @@ namespace Blog_Manager.Views
 
                 if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(url))
                 {
-                    ShowBackendStatus("后端名称和地址不能为空", InfoBarSeverity.Warning);
+                    App.ShowWarning("后端名称和地址不能为空");
                     return;
                 }
-
-                // 先测试连接
-                ShowBackendStatus("正在测试连接...", InfoBarSeverity.Informational);
 
                 var (success, message) = await _backendConfigService.TestBackendAsync(url);
 
@@ -137,28 +142,21 @@ namespace Blog_Manager.Views
                     try
                     {
                         _backendConfigService.AddCustomBackend(name, url);
-                        ShowBackendStatus($"后端 \"{name}\" 添加成功", InfoBarSeverity.Success);
+                        App.ShowSuccess($"后端 \"{name}\" 添加成功");
 
                         // 自动选中新添加的后端
                         SelectedBackend = _backendConfigService.Backends[^1];
                     }
                     catch (Exception ex)
                     {
-                        ShowBackendStatus($"添加失败: {ex.Message}", InfoBarSeverity.Error);
+                        App.ShowError($"添加失败: {ex.Message}");
                     }
                 }
                 else
                 {
-                    ShowBackendStatus($"连接测试失败: {message}，未添加该后端", InfoBarSeverity.Error);
+                    App.ShowError($"连接测试失败: {message}，未添加该后端");
                 }
             }
-        }
-
-        private void ShowBackendStatus(string message, InfoBarSeverity severity)
-        {
-            BackendStatusInfoBar.Message = message;
-            BackendStatusInfoBar.Severity = severity;
-            BackendStatusInfoBar.Visibility = Visibility.Visible;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

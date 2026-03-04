@@ -59,6 +59,9 @@ namespace Blog_Manager.Models
         [JsonProperty("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        [JsonProperty("deletedAt")]
+        public DateTime? DeletedAt { get; set; }
+
         [JsonProperty("updatedAt")]
         public DateTime? UpdatedAt { get; set; }
 
@@ -326,6 +329,39 @@ namespace Blog_Manager.Models
                 {
                     return Visibility.Visible;
                 }
+            }
+        }
+
+        // 距离永久删除的剩余天数
+        public int DaysUntilPermanentDeletion
+        {
+            get
+            {
+                if (Status != 0 || DeletedAt == null) return -1;
+                var deadline = DeletedAt.Value.AddDays(30);
+                var remaining = (deadline - DateTime.Now).Days;
+                return remaining < 0 ? 0 : remaining;
+            }
+        }
+
+        // 永久删除倒计时文本
+        public string DeletionCountdownText
+        {
+            get
+            {
+                var days = DaysUntilPermanentDeletion;
+                if (days < 0) return string.Empty;
+                if (days == 0) return "今天将被永久删除";
+                return $"{days}天后永久删除";
+            }
+        }
+
+        // 是否显示倒计时（仅已删除文章且有 deletedAt 时显示）
+        public Visibility DeletionCountdownVisibility
+        {
+            get
+            {
+                return (Status == 0 && DeletedAt != null) ? Visibility.Visible : Visibility.Collapsed;
             }
         }
     }

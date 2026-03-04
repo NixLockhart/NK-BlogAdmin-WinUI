@@ -152,6 +152,7 @@ namespace Blog_Manager.ViewModels
                     UserAgent = comment.UserAgent,
                     Status = comment.Status,
                     CreatedAt = comment.CreatedAt,
+                    DeletedAt = comment.DeletedAt,
                     Children = new System.Collections.Generic.List<Comment>() // Empty list, not null
                 };
                 result.Add(displayComment);
@@ -210,6 +211,38 @@ namespace Blog_Manager.ViewModels
             catch (Exception ex)
             {
                 throw new Exception($"删除评论失败: {ex.Message}");
+            }
+        }
+
+        public async Task PermanentlyDeleteCommentAsync(long commentId)
+        {
+            try
+            {
+                var response = await _commentApi.PermanentlyDeleteCommentAsync(commentId);
+                if (response.Code != 200)
+                {
+                    throw new Exception(response.Message ?? "永久删除评论失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"永久删除评论失败: {ex.Message}");
+            }
+        }
+
+        public async Task RestoreCommentAsync(long commentId)
+        {
+            try
+            {
+                var response = await _commentApi.RestoreCommentAsync(commentId);
+                if (response.Code != 200)
+                {
+                    throw new Exception(response.Message ?? "恢复评论失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"恢复评论失败: {ex.Message}");
             }
         }
     }

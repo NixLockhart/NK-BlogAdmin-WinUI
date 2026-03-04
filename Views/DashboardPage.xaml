@@ -54,6 +54,8 @@
                     <!-- Total Visits Card -->
                     <Border Grid.Row="0" Grid.Column="0"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20"
                            Margin="0,0,8,8">
@@ -76,6 +78,8 @@
                     <!-- Today Visits Card -->
                     <Border Grid.Row="0" Grid.Column="1"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20"
                            Margin="0,0,8,8">
@@ -98,6 +102,8 @@
                     <!-- Article Count Card -->
                     <Border Grid.Row="0" Grid.Column="2"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20"
                            Margin="0,0,8,8">
@@ -120,6 +126,8 @@
                     <!-- Like Count Card -->
                     <Border Grid.Row="0" Grid.Column="3"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20"
                            Margin="0,0,0,8">
@@ -142,6 +150,8 @@
                     <!-- Comment Count Card -->
                     <Border Grid.Row="1" Grid.Column="0"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20"
                            Margin="0,0,8,0">
@@ -164,6 +174,8 @@
                     <!-- Message Count Card -->
                     <Border Grid.Row="1" Grid.Column="1"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20"
                            Margin="0,0,8,0">
@@ -186,6 +198,8 @@
                     <!-- Runtime Card -->
                     <Border Grid.Row="1" Grid.Column="2"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20"
                            Margin="0,0,8,0">
@@ -208,6 +222,8 @@
                     <!-- System Version Card -->
                     <Border Grid.Row="1" Grid.Column="3"
                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                           BorderThickness="1"
                            CornerRadius="8"
                            Padding="20">
                         <StackPanel>
@@ -229,6 +245,8 @@
 
                 <!-- Charts Card -->
                 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                       BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                       BorderThickness="1"
                        CornerRadius="8"
                        Padding="24">
                     <Grid>

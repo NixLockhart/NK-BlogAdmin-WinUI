@@ -36,6 +36,9 @@ namespace Blog_Manager.ViewModels
         // 标记是否为新建文章模式（用于取消时删除自动保存创建的文章）
         private bool _isNewArticle = true;
 
+        // 标记加载时是否存在草稿文件（用于返回时提示）
+        private bool _hasDraft = false;
+
         [ObservableProperty]
         private long? _articleId;
 
@@ -102,6 +105,23 @@ namespace Blog_Manager.ViewModels
             CoverImage != _originalCoverImage ||
             CategoryId != _originalCategoryId ||
             Status != _originalStatus;
+
+        /// <summary>
+        /// 加载时是否存在草稿文件
+        /// </summary>
+        public bool HasDraft => _hasDraft;
+
+        /// <summary>
+        /// 放弃草稿（删除草稿文件，保留已发布内容）
+        /// </summary>
+        public async Task DiscardDraftAsync()
+        {
+            if (ArticleId.HasValue)
+            {
+                await _articleApi.DiscardDraftAsync(ArticleId.Value);
+                _hasDraft = false;
+            }
+        }
 
         public ArticleEditorViewModel()
         {
@@ -176,7 +196,8 @@ namespace Blog_Manager.ViewModels
                     Summary = Summary,
                     CoverImage = string.IsNullOrWhiteSpace(CoverImage) ? null : CoverImage,
                     CategoryId = CategoryId,
-                    Status = 2 // 自动保存始终保存为草稿
+                    Status = ArticleId.HasValue ? Status : 2, // 已有文章保留原状态，新建文章保存为草稿
+                    AutoSave = true
                 };
 
                 if (ArticleId.HasValue)
@@ -270,6 +291,9 @@ namespace Blog_Manager.ViewModels
                     CategoryId = article.CategoryId;
                     Status = article.Status;
                     Content = article.MarkdownContent ?? article.Content ?? string.Empty;
+
+                    // 记录是否存在草稿文件
+                    _hasDraft = article.HasDraft == true;
 
                     // 记录已加载的内容，避免自动保存时误判为修改
                     _lastSavedContent = Content;

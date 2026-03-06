@@ -65,6 +65,9 @@ namespace Blog_Manager.Models
         [JsonProperty("updatedAt")]
         public DateTime? UpdatedAt { get; set; }
 
+        [JsonProperty("hasDraft")]
+        public bool? HasDraft { get; set; }
+
         [JsonProperty("content")]
         public string? Content { get; set; }
 
@@ -221,6 +224,15 @@ namespace Blog_Manager.Models
                     System.Diagnostics.Debug.WriteLine($"SafeCategoryName异常: {ex.Message}");
                     return "未分类";
                 }
+            }
+        }
+
+        // 是否存在未保存的草稿修改
+        public Visibility HasDraftVisibility
+        {
+            get
+            {
+                return HasDraft == true ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
@@ -388,5 +400,8 @@ namespace Blog_Manager.Models
 
         [JsonProperty("status")]
         public int Status { get; set; } = 2; // 默认草稿
+
+        [JsonProperty("autoSave")]
+        public bool? AutoSave { get; set; }
     }
 }

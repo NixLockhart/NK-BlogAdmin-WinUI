@@ -132,6 +132,15 @@
                                                  FontSize="11"
                                                  FontWeight="SemiBold"/>
                                     </Border>
+                                    <Border Background="#E8A317"
+                                           CornerRadius="4"
+                                           Padding="4,2"
+                                           Visibility="{x:Bind HasDraftVisibility, Mode=OneWay}">
+                                        <TextBlock Text="有未保存的修改"
+                                                 Foreground="White"
+                                                 FontSize="11"
+                                                 FontWeight="SemiBold"/>
+                                    </Border>
                                     <TextBlock Text="{x:Bind Title, Mode=OneWay}"
                                              Style="{StaticResource BodyStrongTextBlockStyle}"
                                              TextTrimming="CharacterEllipsis"

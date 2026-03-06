@@ -320,43 +320,71 @@ namespace Blog_Manager.Views
         /// </summary>
         private async System.Threading.Tasks.Task HandleBackNavigationAsync()
         {
-            // 如果没有未保存的更改，直接返回
-            if (!ViewModel.HasUnsavedChanges)
+            // 有手动编辑的更改（优先级最高）
+            if (ViewModel.HasUnsavedChanges)
             {
-                NavigateBack();
+                var dialog = new ContentDialog
+                {
+                    Title = "未保存的更改",
+                    Content = "您有未保存的更改。是否保存？\n\n选择\"保存\"将保存当前修改\n选择\"不保存\"将回滚到打开文章时的状态\n选择\"取消\"将继续编辑",
+                    PrimaryButtonText = "保存",
+                    SecondaryButtonText = "不保存",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+
+                switch (result)
+                {
+                    case ContentDialogResult.Primary:
+                        await SaveAndGoBack();
+                        break;
+                    case ContentDialogResult.Secondary:
+                        await RollbackAndGoBack();
+                        break;
+                    case ContentDialogResult.None:
+                        break;
+                }
                 return;
             }
 
-            // 显示确认对话框
-            var dialog = new ContentDialog
+            // 无手动编辑，但存在之前残留的草稿文件
+            if (ViewModel.HasDraft)
             {
-                Title = "未保存的更改",
-                Content = "您有未保存的更改。是否保存？\n\n选择\"保存\"将保存当前修改\n选择\"不保存\"将回滚到打开文章时的状态\n选择\"取消\"将继续编辑",
-                PrimaryButtonText = "保存",
-                SecondaryButtonText = "不保存",
-                CloseButtonText = "取消",
-                DefaultButton = ContentDialogButton.Primary,
-                XamlRoot = this.XamlRoot
-            };
+                var dialog = new ContentDialog
+                {
+                    Title = "存在未发布的草稿",
+                    Content = "该文章有之前编辑未发布的草稿修改。\n\n选择\"继续编辑\"留在编辑器中\n选择\"保留草稿\"返回列表，下次打开时继续\n选择\"放弃草稿\"删除草稿，恢复为已发布内容",
+                    PrimaryButtonText = "继续编辑",
+                    SecondaryButtonText = "保留草稿",
+                    CloseButtonText = "放弃草稿",
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
 
-            var result = await dialog.ShowAsync();
+                var result = await dialog.ShowAsync();
 
-            switch (result)
-            {
-                case ContentDialogResult.Primary:
-                    // 用户选择保存
-                    await SaveAndGoBack();
-                    break;
-
-                case ContentDialogResult.Secondary:
-                    // 用户选择不保存（回滚）
-                    await RollbackAndGoBack();
-                    break;
-
-                case ContentDialogResult.None:
-                    // 用户取消，继续编辑
-                    break;
+                switch (result)
+                {
+                    case ContentDialogResult.Primary:
+                        // 继续编辑
+                        break;
+                    case ContentDialogResult.Secondary:
+                        // 保留草稿，直接返回
+                        NavigateBack();
+                        break;
+                    case ContentDialogResult.None:
+                        // 放弃草稿
+                        await DiscardDraftAndGoBack();
+                        break;
+                }
+                return;
             }
+
+            // 无更改也无草稿，直接返回
+            NavigateBack();
         }
 
         /// <summary>
@@ -399,6 +427,30 @@ namespace Blog_Manager.Views
             catch (Exception ex)
             {
                 ShowError($"回滚失败: {ex.Message}");
+                ContentPanel.Visibility = Visibility.Visible;
+            }
+            finally
+            {
+                LoadingPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        /// <summary>
+        /// 放弃草稿并返回
+        /// </summary>
+        private async System.Threading.Tasks.Task DiscardDraftAndGoBack()
+        {
+            LoadingPanel.Visibility = Visibility.Visible;
+            ContentPanel.Visibility = Visibility.Collapsed;
+
+            try
+            {
+                await ViewModel.DiscardDraftAsync();
+                NavigateBack();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"放弃草稿失败: {ex.Message}");
                 ContentPanel.Visibility = Visibility.Visible;
             }
             finally

@@ -51,6 +51,9 @@ namespace Blog_Manager
         private bool _isInSubPage = false;
         private string _parentPageTag = string.Empty;
 
+        // 侧边栏点击时暂存目标页面 tag（供 NavigateBackFromSubPage 使用）
+        private string? _pendingNavigationTag = null;
+
         public MainWindow()
         {
             this.InitializeComponent();
@@ -138,6 +141,9 @@ namespace Blog_Manager
             {
                 if (_isInSubPage)
                 {
+                    // 面包屑返回始终回到父页面，清除侧边栏暂存的目标
+                    _pendingNavigationTag = null;
+
                     if (ContentFrame.Content is ArticleEditorPage editorPage)
                     {
                         // 调用编辑器的返回处理（包含未保存更改检查）
@@ -231,13 +237,51 @@ namespace Blog_Manager
         /// </summary>
         public void NavigateBackFromSubPage()
         {
-            if (_isInSubPage && !string.IsNullOrEmpty(_parentPageTag))
+            if (_isInSubPage)
             {
                 _isInSubPage = false;
 
-                // 导航回父页面
-                NavigateToPage(_parentPageTag);
+                // 优先使用侧边栏暂存的目标页面，否则回到父页面
+                var targetTag = _pendingNavigationTag ?? _parentPageTag;
+                _pendingNavigationTag = null;
                 _parentPageTag = string.Empty;
+
+                if (!string.IsNullOrEmpty(targetTag))
+                {
+                    NavigateToPage(targetTag);
+
+                    // 同步侧边栏选中状态
+                    SelectNavItem(targetTag);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 同步侧边栏选中项
+        /// </summary>
+        private void SelectNavItem(string tag)
+        {
+            if (tag == "Settings")
+            {
+                NavView.SelectedItem = NavView.SettingsItem;
+                return;
+            }
+
+            foreach (NavigationViewItemBase item in NavView.MenuItems)
+            {
+                if (item is NavigationViewItem navItem && navItem.Tag?.ToString() == tag)
+                {
+                    NavView.SelectedItem = navItem;
+                    return;
+                }
+            }
+            foreach (NavigationViewItemBase item in NavView.FooterMenuItems)
+            {
+                if (item is NavigationViewItem navItem && navItem.Tag?.ToString() == tag)
+                {
+                    NavView.SelectedItem = navItem;
+                    return;
+                }
             }
         }
 
@@ -250,6 +294,88 @@ namespace Blog_Manager
             {
                 UpdateToolbarForEditor(editorPage);
             }
+        }
+
+        /// <summary>
+        /// 判断当前是否在编辑器子页面且有未保存的更改
+        /// </summary>
+        public bool HasUnsavedEditorChanges()
+        {
+            if (!_isInSubPage) return false;
+
+            if (ContentFrame.Content is ArticleEditorPage articleEditor)
+                return articleEditor.ViewModel.HasUnsavedChanges;
+
+            if (ContentFrame.Content is UpdateLogEditorPage updateLogEditor)
+                return updateLogEditor.HasUnsavedChanges;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 窗口关闭前的编辑器确认对话框，返回 true 表示可以关闭
+        /// </summary>
+        public async Task<bool> ConfirmCloseAsync()
+        {
+            if (!_isInSubPage) return true;
+
+            if (ContentFrame.Content is ArticleEditorPage articleEditor && articleEditor.ViewModel.HasUnsavedChanges)
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = "未保存的更改",
+                    Content = "您有未保存的更改。关闭窗口将丢失这些修改。\n\n选择\"保存\"将保存当前修改后关闭\n选择\"不保存\"将直接关闭",
+                    PrimaryButtonText = "保存",
+                    SecondaryButtonText = "不保存",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+                switch (result)
+                {
+                    case ContentDialogResult.Primary:
+                        try { await articleEditor.ViewModel.SaveArticleAsync(); }
+                        catch { return false; }
+                        return true;
+                    case ContentDialogResult.Secondary:
+                        try { await articleEditor.ViewModel.RollbackToOriginalAsync(); }
+                        catch { /* 关闭窗口不阻塞 */ }
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            if (ContentFrame.Content is UpdateLogEditorPage updateLogEditor && updateLogEditor.HasUnsavedChanges)
+            {
+                var dialog = new ContentDialog
+                {
+                    Title = "未保存的更改",
+                    Content = "您有未保存的更改。关闭窗口将丢失这些修改。\n\n选择\"保存\"将保存后关闭\n选择\"不保存\"将直接关闭",
+                    PrimaryButtonText = "保存",
+                    SecondaryButtonText = "不保存",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Primary,
+                    XamlRoot = this.XamlRoot
+                };
+
+                var result = await dialog.ShowAsync();
+                switch (result)
+                {
+                    case ContentDialogResult.Primary:
+                        try { await updateLogEditor.TrySaveAsync(); }
+                        catch { return false; }
+                        return true;
+                    case ContentDialogResult.Secondary:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            return true;
         }
 
         private void NavView_Loaded(object sender, RoutedEventArgs e)
@@ -274,14 +400,29 @@ namespace Blog_Manager
 
         private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
+            string? tag = null;
             if (args.InvokedItemContainer != null)
-            {
-                var tag = args.InvokedItemContainer.Tag?.ToString();
-                NavigateToPage(tag);
-            }
+                tag = args.InvokedItemContainer.Tag?.ToString();
             else if (args.IsSettingsInvoked)
+                tag = "Settings";
+
+            if (string.IsNullOrEmpty(tag)) return;
+
+            if (_isInSubPage)
             {
-                NavigateToPage("Settings");
+                // 正在编辑子页面，需先走编辑器的返回检查
+                _pendingNavigationTag = tag;
+
+                if (ContentFrame.Content is ArticleEditorPage editorPage)
+                    editorPage.OnBackClick();
+                else if (ContentFrame.Content is UpdateLogEditorPage updateLogEditorPage)
+                    updateLogEditorPage.OnBackClick();
+                else
+                    NavigateToPage(tag);
+            }
+            else
+            {
+                NavigateToPage(tag);
             }
         }
 

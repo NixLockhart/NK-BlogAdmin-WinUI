@@ -129,6 +129,11 @@ namespace Blog_Manager.Views
         }
 
         /// <summary>
+        /// 保存更新日志（可 await 版本，供窗口关闭确认调用）
+        /// </summary>
+        public Task TrySaveAsync() => SaveUpdateLogAsync();
+
+        /// <summary>
         /// 返回按钮点击 - 供 MainWindow 调用
         /// </summary>
         public void OnBackClick()

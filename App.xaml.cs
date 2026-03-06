@@ -16,6 +16,7 @@ namespace Blog_Manager
     {
         private Window? m_window;
         private const string ThemeSettingKey = "AppTheme";
+        private bool _isClosingConfirmed = false;
 
         // Public property to access the main window
         public Window? Window => m_window;
@@ -98,6 +99,9 @@ namespace Blog_Manager
 
                 // 监听窗口关闭事件，释放资源
                 m_window.Closed += OnWindowClosed;
+
+                // 监听可取消的关闭事件，拦截编辑器未保存更改
+                m_window.AppWindow.Closing += OnAppWindowClosing;
 
                 // 自定义标题栏设置
                 m_window.ExtendsContentIntoTitleBar = true;
@@ -219,6 +223,27 @@ namespace Blog_Manager
         {
             // 释放 ApiServiceFactory 中的 HttpClient 资源
             ApiServiceFactory?.Dispose();
+        }
+
+        /// <summary>
+        /// 窗口关闭前检查编辑器未保存更改（可取消）
+        /// </summary>
+        private async void OnAppWindowClosing(Microsoft.UI.Windowing.AppWindow sender,
+            Microsoft.UI.Windowing.AppWindowClosingEventArgs args)
+        {
+            if (_isClosingConfirmed) return;
+
+            if (m_window?.Content is MainWindow mainWindow && mainWindow.HasUnsavedEditorChanges())
+            {
+                args.Cancel = true;
+
+                bool canClose = await mainWindow.ConfirmCloseAsync();
+                if (canClose)
+                {
+                    _isClosingConfirmed = true;
+                    m_window.Close();
+                }
+            }
         }
 
         // 静态通知辅助方法，供各页面调用

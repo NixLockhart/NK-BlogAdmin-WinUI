@@ -132,6 +132,24 @@ namespace Blog_Manager.Views
             });
         }
 
+        private void CoverImageTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            var text = CoverImageTextBox.Text?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrEmpty(text))
+            {
+                _coverImageRelativePath = string.Empty;
+                CoverPreviewBorder.Visibility = Visibility.Collapsed;
+                UpdateUploadButtonState(false);
+                return;
+            }
+
+            // 将用户输入转为相对路径存储
+            _coverImageRelativePath = Helpers.AppContext.ToRelativePath(text);
+            UpdateCoverPreview(_coverImageRelativePath);
+            UpdateUploadButtonState(true);
+        }
+
         private async void UploadCoverButton_Click(object sender, RoutedEventArgs e)
         {
             try

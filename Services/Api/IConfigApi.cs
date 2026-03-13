@@ -29,6 +29,14 @@ namespace Blog_Manager.Services.Api
         [Delete("/api/admin/config/{key}")]
         [Headers("Authorization: Bearer")]
         Task<ApiResult<object>> DeleteConfigAsync(string key);
+
+        [Get("/api/admin/config/image-storage")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<ImageStorageConfig>> GetImageStorageConfigAsync();
+
+        [Put("/api/admin/config/image-storage")]
+        [Headers("Authorization: Bearer")]
+        Task<ApiResult<object>> UpdateImageStorageConfigAsync([Body] ImageStorageConfig config);
     }
 
     /// <summary>

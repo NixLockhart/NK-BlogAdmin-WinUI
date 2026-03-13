@@ -211,6 +211,201 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Image Storage Settings -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Section Header -->
+                        <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE722;" FontSize="18" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                                <TextBlock Text="图片存储"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock Text="配置图片的存储方式（本地服务器或图床）"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontSize="12"
+                                       Margin="28,0,0,0"/>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                        <!-- Storage Mode -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="存储模式" FontWeight="Medium"/>
+                                <TextBlock Text="选择图片的存储方式"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           FontSize="12"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                                <RadioButton x:Name="LocalStorageRadio" Content="本地存储" Tag="local" GroupName="StorageMode" Checked="StorageMode_Checked"/>
+                                <RadioButton x:Name="CdnStorageRadio" Content="图床" Tag="cdn" GroupName="StorageMode" Checked="StorageMode_Checked"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- CDN Config Panel -->
+                        <StackPanel x:Name="CdnConfigPanel" Spacing="16" Visibility="Collapsed">
+                            <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                            <TextBlock Text="图床配置" FontWeight="Medium" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+
+                            <!-- Upload URL -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="上传 API" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <TextBox x:Name="CdnUploadUrlBox" Grid.Column="1" PlaceholderText="https://api.imgbb.com/1/upload"/>
+                            </Grid>
+
+                            <!-- HTTP Method -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="HTTP 方法" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="CdnMethodCombo" Grid.Column="1" SelectedIndex="0" Width="120">
+                                    <ComboBoxItem Content="POST"/>
+                                    <ComboBoxItem Content="PUT"/>
+                                </ComboBox>
+                            </Grid>
+
+                            <!-- File Field -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="文件字段名" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <TextBox x:Name="CdnFileFieldBox" Grid.Column="1" PlaceholderText="file" Text="file"/>
+                            </Grid>
+
+                            <!-- Headers -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="请求头" FontWeight="Medium"/>
+                                <StackPanel x:Name="HeadersPanel" Spacing="4"/>
+                                <Button Click="AddHeader_Click" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE710;" FontSize="12"/>
+                                        <TextBlock Text="添加请求头" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- Extra Params -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="附加参数" FontWeight="Medium"/>
+                                <StackPanel x:Name="ExtraParamsPanel" Spacing="4"/>
+                                <Button Click="AddExtraParam_Click" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE710;" FontSize="12"/>
+                                        <TextBlock Text="添加参数" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                            <TextBlock Text="响应解析" FontWeight="Medium" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+
+                            <!-- Response URL Field -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="URL 路径" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <TextBox x:Name="CdnResponseUrlFieldBox" Grid.Column="1" PlaceholderText="data.url" Text="data.url"/>
+                            </Grid>
+
+                            <!-- Response Delete Field -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="删除凭据路径" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <TextBox x:Name="CdnResponseDeleteFieldBox" Grid.Column="1" PlaceholderText="data.delete_url（可选）"/>
+                            </Grid>
+
+                            <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                            <TextBlock Text="删除配置（可选）" FontWeight="Medium" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+
+                            <!-- Delete URL Template -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="删除 API" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <TextBox x:Name="CdnDeleteUrlTemplateBox" Grid.Column="1" PlaceholderText="https://sm.ms/api/v2/delete/{deleteKey}"/>
+                            </Grid>
+
+                            <!-- Delete Method -->
+                            <Grid ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="删除方法" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="CdnDeleteMethodCombo" Grid.Column="1" SelectedIndex="0" Width="120">
+                                    <ComboBoxItem Content="GET"/>
+                                    <ComboBoxItem Content="DELETE"/>
+                                    <ComboBoxItem Content="POST"/>
+                                </ComboBox>
+                            </Grid>
+
+                            <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" Margin="-24,0"/>
+
+                            <TextBlock Text="高级" FontWeight="Medium" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+
+                            <!-- Timeout and Retries -->
+                            <Grid ColumnSpacing="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="80"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="超时(秒)" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <NumberBox x:Name="CdnTimeoutBox" Grid.Column="1" Value="30" Minimum="5" Maximum="120" SpinButtonPlacementMode="Compact"/>
+                                <TextBlock Grid.Column="2" Text="重试次数" FontWeight="Medium" VerticalAlignment="Center"/>
+                                <NumberBox x:Name="CdnMaxRetriesBox" Grid.Column="3" Value="2" Minimum="0" Maximum="5" SpinButtonPlacementMode="Compact"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Save & Test Buttons -->
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Click="SaveImageStorageConfig_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                                    <TextBlock Text="保存配置"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="TestCdnButton" Click="TestCdnConnection_Click" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE703;" FontSize="14"/>
+                                    <TextBlock Text="测试连接"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- IP Location API Settings -->
                 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -428,16 +623,7 @@
                                             Padding="8,4">
                                         <TextBlock x:Name="VersionText" FontSize="12"/>
                                     </Border>
-                                    <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}"
-                                            CornerRadius="4"
-                                            Padding="8,4">
-                                        <TextBlock Text="WinUI 3" FontSize="12"/>
-                                    </Border>
                                 </StackPanel>
-                                <TextBlock Text="基于 WinUI 3 开发的现代化博客管理工具"
-                                           TextWrapping="Wrap"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                           FontSize="12"/>
                             </StackPanel>
                         </Grid>
 

@@ -34,7 +34,7 @@
                             Grid.Column="0"
                             PlaceholderText="图片URL或点击右侧按钮上传"
                             Margin="0,0,8,0"
-                            IsReadOnly="True"/>
+                            LostFocus="CoverImageTextBox_LostFocus"/>
 
                     <Button x:Name="UploadCoverButton"
                            Grid.Column="1"

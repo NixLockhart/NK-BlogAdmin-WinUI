@@ -10,10 +10,13 @@ namespace Blog_Manager.Services.Api
     /// </summary>
     public interface IFileApi
     {
+        /// <summary>
+        /// 上传封面图（也用于测试图床连接）
+        /// </summary>
         [Multipart]
-        [Post("/api/files/upload")]
+        [Post("/api/files/cover")]
         [Headers("Authorization: Bearer")]
-        Task<ApiResult<string>> UploadFileAsync([AliasAs("file")] StreamPart file);
+        Task<ApiResult<Dictionary<string, string>>> UploadCoverAsync([AliasAs("file")] StreamPart file);
 
         /// <summary>
         /// 上传头像（与评论/留言使用相同接口）

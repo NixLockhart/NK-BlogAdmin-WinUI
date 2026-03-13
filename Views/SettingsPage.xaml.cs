@@ -4,8 +4,10 @@ using Blog_Manager.Helpers;
 using Blog_Manager.Models;
 using Blog_Manager.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -91,6 +93,7 @@ namespace Blog_Manager.Views
             LoadIpApiCredentials();
             LoadGitHubToken();
             LoadVersionInfo();
+            LoadImageStorageConfig();
         }
 
         private void LoadUserInfo()
@@ -370,6 +373,291 @@ namespace Blog_Manager.Views
                 App.ShowError($"保存失败: {ex.Message}");
             }
         }
+
+        #region 图片存储配置
+
+        private bool _isLoadingStorageConfig = true;
+        private ImageStorageConfig? _currentImageStorageConfig;
+
+        private async void LoadImageStorageConfig()
+        {
+            _isLoadingStorageConfig = true;
+            try
+            {
+                var app = Application.Current as App;
+                var configApi = app?.ApiServiceFactory.CreateConfigApi();
+                if (configApi == null) return;
+
+                var result = await configApi.GetImageStorageConfigAsync();
+                if (result?.Data != null)
+                {
+                    _currentImageStorageConfig = result.Data;
+                    PopulateImageStorageUI(result.Data);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"LoadImageStorageConfig error: {ex.Message}");
+                _currentImageStorageConfig = new ImageStorageConfig();
+                PopulateImageStorageUI(_currentImageStorageConfig);
+            }
+            finally
+            {
+                _isLoadingStorageConfig = false;
+            }
+        }
+
+        private void PopulateImageStorageUI(ImageStorageConfig config)
+        {
+            if (config.Mode == "cdn")
+            {
+                CdnStorageRadio.IsChecked = true;
+                CdnConfigPanel.Visibility = Visibility.Visible;
+                TestCdnButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                LocalStorageRadio.IsChecked = true;
+                CdnConfigPanel.Visibility = Visibility.Collapsed;
+                TestCdnButton.Visibility = Visibility.Collapsed;
+            }
+
+            var cdn = config.Cdn ?? new CdnConfig();
+            CdnUploadUrlBox.Text = cdn.UploadUrl ?? string.Empty;
+            CdnFileFieldBox.Text = string.IsNullOrEmpty(cdn.FileField) ? "file" : cdn.FileField;
+            CdnResponseUrlFieldBox.Text = string.IsNullOrEmpty(cdn.ResponseUrlField) ? "data.url" : cdn.ResponseUrlField;
+            CdnResponseDeleteFieldBox.Text = cdn.ResponseDeleteField ?? string.Empty;
+            CdnDeleteUrlTemplateBox.Text = cdn.DeleteUrlTemplate ?? string.Empty;
+            CdnTimeoutBox.Value = cdn.Timeout > 0 ? cdn.Timeout : 30;
+            CdnMaxRetriesBox.Value = cdn.MaxRetries >= 0 ? cdn.MaxRetries : 2;
+
+            // Set method combos
+            SelectComboByContent(CdnMethodCombo, cdn.Method ?? "POST");
+            SelectComboByContent(CdnDeleteMethodCombo, cdn.DeleteMethod ?? "GET");
+
+            // Populate headers
+            HeadersPanel.Children.Clear();
+            if (cdn.Headers != null)
+            {
+                foreach (var kvp in cdn.Headers)
+                {
+                    AddKeyValueRow(HeadersPanel, kvp.Key, kvp.Value);
+                }
+            }
+
+            // Populate extra params
+            ExtraParamsPanel.Children.Clear();
+            if (cdn.ExtraParams != null)
+            {
+                foreach (var kvp in cdn.ExtraParams)
+                {
+                    AddKeyValueRow(ExtraParamsPanel, kvp.Key, kvp.Value);
+                }
+            }
+        }
+
+        private void StorageMode_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_isLoadingStorageConfig) return;
+
+            if (sender is RadioButton rb && rb.Tag is string mode)
+            {
+                bool isCdn = mode == "cdn";
+                CdnConfigPanel.Visibility = isCdn ? Visibility.Visible : Visibility.Collapsed;
+                TestCdnButton.Visibility = isCdn ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private ImageStorageConfig BuildImageStorageConfig()
+        {
+            var config = new ImageStorageConfig
+            {
+                Mode = CdnStorageRadio.IsChecked == true ? "cdn" : "local",
+                Cdn = new CdnConfig
+                {
+                    UploadUrl = CdnUploadUrlBox.Text?.Trim() ?? string.Empty,
+                    Method = (CdnMethodCombo.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "POST",
+                    FileField = CdnFileFieldBox.Text?.Trim() ?? "file",
+                    ResponseUrlField = CdnResponseUrlFieldBox.Text?.Trim() ?? "data.url",
+                    ResponseDeleteField = CdnResponseDeleteFieldBox.Text?.Trim() ?? string.Empty,
+                    DeleteUrlTemplate = CdnDeleteUrlTemplateBox.Text?.Trim() ?? string.Empty,
+                    DeleteMethod = (CdnDeleteMethodCombo.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "GET",
+                    Timeout = (int)CdnTimeoutBox.Value,
+                    MaxRetries = (int)CdnMaxRetriesBox.Value,
+                    Headers = CollectKeyValuePairs(HeadersPanel),
+                    ExtraParams = CollectKeyValuePairs(ExtraParamsPanel),
+                }
+            };
+            return config;
+        }
+
+        private async void SaveImageStorageConfig_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var config = BuildImageStorageConfig();
+
+                if (config.Mode == "cdn" && string.IsNullOrWhiteSpace(config.Cdn.UploadUrl))
+                {
+                    App.ShowWarning("图床模式下必须填写上传 API 地址");
+                    return;
+                }
+
+                var app = Application.Current as App;
+                var configApi = app?.ApiServiceFactory.CreateConfigApi();
+                if (configApi == null) return;
+
+                await configApi.UpdateImageStorageConfigAsync(config);
+                _currentImageStorageConfig = config;
+                App.ShowSuccess("图片存储配置已保存");
+            }
+            catch (Exception ex)
+            {
+                App.ShowError($"保存失败: {ex.Message}");
+            }
+        }
+
+        private async void TestCdnConnection_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            if (button == null) return;
+
+            button.IsEnabled = false;
+            var originalContent = button.Content;
+            button.Content = new ProgressRing { Width = 14, Height = 14, IsActive = true };
+
+            try
+            {
+                // First save the config
+                var config = BuildImageStorageConfig();
+
+                if (string.IsNullOrWhiteSpace(config.Cdn.UploadUrl))
+                {
+                    App.ShowWarning("请先填写上传 API 地址");
+                    return;
+                }
+
+                var app = Application.Current as App;
+                var configApi = app?.ApiServiceFactory.CreateConfigApi();
+                if (configApi == null) return;
+
+                await configApi.UpdateImageStorageConfigAsync(config);
+                _currentImageStorageConfig = config;
+
+                // Try uploading a test image through the existing upload API
+                var fileApi = app?.ApiServiceFactory.CreateFileApi();
+                if (fileApi == null) return;
+
+                // Create a minimal 1x1 PNG test image
+                byte[] testPng = Convert.FromBase64String(
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==");
+
+                using var stream = new System.IO.MemoryStream(testPng);
+                var streamPart = new Refit.StreamPart(stream, "test.png", "image/png");
+                var uploadResult = await fileApi.UploadCoverAsync(streamPart);
+
+                if (uploadResult?.Data != null)
+                {
+                    var url = uploadResult.Data.ContainsKey("url") ? uploadResult.Data["url"] : uploadResult.Data.GetValueOrDefault("path", "");
+                    App.ShowSuccess($"测试成功！图片地址: {url}");
+                }
+                else
+                {
+                    App.ShowSuccess("测试上传成功");
+                }
+            }
+            catch (Exception ex)
+            {
+                App.ShowError($"测试失败: {ex.Message}");
+            }
+            finally
+            {
+                button.Content = originalContent;
+                button.IsEnabled = true;
+            }
+        }
+
+        private void AddHeader_Click(object sender, RoutedEventArgs e)
+        {
+            AddKeyValueRow(HeadersPanel, string.Empty, string.Empty);
+        }
+
+        private void AddExtraParam_Click(object sender, RoutedEventArgs e)
+        {
+            AddKeyValueRow(ExtraParamsPanel, string.Empty, string.Empty);
+        }
+
+        private void AddKeyValueRow(StackPanel panel, string key, string value)
+        {
+            var row = new Grid { ColumnSpacing = 8 };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var keyBox = new TextBox { PlaceholderText = "键", Text = key };
+            Grid.SetColumn(keyBox, 0);
+
+            var valueBox = new TextBox { PlaceholderText = "值", Text = value };
+            Grid.SetColumn(valueBox, 1);
+
+            var removeBtn = new Button
+            {
+                Content = new FontIcon { Glyph = "\xE74D", FontSize = 12 },
+                Tag = row,
+            };
+            removeBtn.Click += (s, e) =>
+            {
+                if (s is Button btn && btn.Tag is Grid g)
+                {
+                    panel.Children.Remove(g);
+                }
+            };
+            Grid.SetColumn(removeBtn, 2);
+
+            row.Children.Add(keyBox);
+            row.Children.Add(valueBox);
+            row.Children.Add(removeBtn);
+
+            panel.Children.Add(row);
+        }
+
+        private Dictionary<string, string> CollectKeyValuePairs(StackPanel panel)
+        {
+            var dict = new Dictionary<string, string>();
+            foreach (var child in panel.Children)
+            {
+                if (child is Grid row && row.Children.Count >= 2)
+                {
+                    var keyBox = row.Children.OfType<TextBox>().FirstOrDefault();
+                    var valueBox = row.Children.OfType<TextBox>().Skip(1).FirstOrDefault();
+                    if (keyBox != null && valueBox != null)
+                    {
+                        var k = keyBox.Text?.Trim();
+                        var v = valueBox.Text?.Trim();
+                        if (!string.IsNullOrEmpty(k))
+                        {
+                            dict[k] = v ?? string.Empty;
+                        }
+                    }
+                }
+            }
+            return dict;
+        }
+
+        private void SelectComboByContent(ComboBox combo, string content)
+        {
+            foreach (var item in combo.Items)
+            {
+                if (item is ComboBoxItem cbi && cbi.Content?.ToString() == content)
+                {
+                    combo.SelectedItem = cbi;
+                    return;
+                }
+            }
+            if (combo.Items.Count > 0) combo.SelectedIndex = 0;
+        }
+
+        #endregion
 
         #region 版本更新
 
